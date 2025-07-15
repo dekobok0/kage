@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Hello World!</title>
-    <link rel="stylesheet" href="index.css" />
-  </head>
-  <body>
-    <h1>💖 Hello World!</h1>
-    <p>Welcome to your Electron application.</p>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <title>Kage</title>
+    </head>
+<body>
+    <h1>Kage 面接アシスタント</h1>
+    
+    <div>
+        <h2>あなたの質問:</h2>
+        <p id="user-question">（ここに面接官の質問が表示されます）</p>
+    </div>
+
+    <hr>
+
+    <div>
+        <h2>AIの回答:</h2>
+        <p id="ai-answer">（ここにAIからのアドバイスが表示されます）</p>
+    </div>
+
+    <script src="./renderer.js"></script>
+</body>
 </html>
