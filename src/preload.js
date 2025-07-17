@@ -2,15 +2,35 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-// 'api'という安全な橋を、レンダラー（UI）の世界に架ける
 contextBridge.exposeInMainWorld('api', {
-  /**
-   * メインプロセスから 'from-python' チャンネルでデータが送られてきたときに、
-   * 指定されたコールバック関数を実行するリスナーを設定する。
-   * @param {function(data)} callback - データ受信時に実行される関数
-   */
   onPythonData: (callback) => {
     ipcRenderer.on('from-python', (event, data) => callback(data));
-  }
-});// See the Electron documentation for details on how to use preload scripts:
-// https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
+  },
+  // ▼▼▼ この関数を追加 ▼▼▼
+  /**
+   * プロフィールデータをメインプロセスに送信して保存を要求する
+   * @param {object} profileData - { characteristics, resume }
+   */
+  saveProfile: (profileData) => {
+    ipcRenderer.send('save-profile', profileData);
+  },
+  // ▼▼▼ この関数を追加 ▼▼▼
+  /**
+   * メインプロセスからロードされたプロフィールデータを受け取るリスナー
+   * @param {function(profileData)} callback
+   */
+  onProfileLoaded: (callback) => {
+    // 'once' を使うことで、アプリ起動時に一度だけデータを受け取る
+    ipcRenderer.once('profile-loaded', (event, profileData) => callback(profileData));
+  },
+
+
+  // ▼▼▼ この関数を追加 ▼▼▼
+  /**
+   * メインプロセスにレポート生成を要求し、結果（レポートテキスト）を受け取る
+   * @returns {Promise<string>} 生成されたレポートのテキスト
+   */
+  generateReport: () => ipcRenderer.invoke('generate-report'),
+  // ▲▲▲ ここまで ▲▲▲
+
+});

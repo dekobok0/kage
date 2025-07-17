@@ -3,10 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <title>Kage</title>
-    </head>
+</head>
 <body>
     <h1>Kage 面接アシスタント</h1>
-    
+
+    <div id="profile-section">
+        <h2>マイプロフィール</h2>
+        <form id="profile-form">
+            <div>
+                <label for="user-characteristics">① あなたの特性・配慮してほしい点:</label><br>
+                <textarea id="user-characteristics" rows="4" cols="80" placeholder="例：視覚思考者です。思考を言語化するのに少し時間がかかります。"></textarea>
+            </div>
+            <br>
+            <div>
+                <label for="resume-input">② 経歴・スキル・応募情報:</label><br>
+                <textarea id="resume-input" rows="10" cols="80" placeholder="ここに職務経歴書や自己PR、応募企業の求人情報などを貼り付けてください。"></textarea>
+            </div>
+            <br>
+            <button type="submit">プロフィールを保存</button>
+            <span id="save-status" style="margin-left: 10px;"></span>
+        </form>
+    </div>
+    <hr>
+
+    <!-- ▼▼▼ このブロックを追加 ▼▼▼ -->
+    <hr>
+    <div id="report-section" style="margin-top: 20px;">
+        <h2>合理的配慮レポート</h2>
+        <button id="generate-report-button">レポートを生成</button>
+        <div style="margin-top: 10px;">
+            <h3>生成されたレポート:</h3>
+            <pre id="report-output" style="white-space: pre-wrap; word-wrap: break-word; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; min-height: 100px;"></pre>
+        </div>
+    </div>
+    <!-- ▲▲▲ ここまで ▲▲▲ -->
+     
     <div>
         <h2>あなたの質問:</h2>
         <p id="user-question">（ここに面接官の質問が表示されます）</p>
