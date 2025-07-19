@@ -79,7 +79,7 @@ window.api.onPythonData((data) => {
 });
 
 
-// ▼▼▼ このブロックを末尾に追加 ▼▼▼
+// ▼▼▼ このブロックを丸ごと置き換える ▼▼▼
 // レポート機能のための要素を取得
 const generateReportButton = document.getElementById('generate-report-button');
 const reportOutputElement = document.getElementById('report-output');
@@ -87,23 +87,52 @@ const reportOutputElement = document.getElementById('report-output');
 // 「レポートを生成」ボタンがクリックされたときの処理
 generateReportButton.addEventListener('click', async () => {
   try {
-    // ボタンのテキストを「生成中...」に変更
     generateReportButton.textContent = '生成中...';
     generateReportButton.disabled = true;
 
-    // 厨房(メインプロセス)にレポート作成を依頼し、返事を待つ
-    const reportText = await window.api.generateReport();
+    // メインプロセスにレポート作成を依頼し、結果（成否とメッセージ）を受け取る
+    const result = await window.api.generateReport();
     
-    // 返ってきたレポートを画面に表示
-    reportOutputElement.textContent = reportText;
+    if (result.success) {
+      reportOutputElement.style.color = 'green';
+    } else {
+      reportOutputElement.style.color = 'orange';
+    }
+    // 結果のメッセージを表示
+    reportOutputElement.textContent = result.message;
 
   } catch (error) {
-    // エラーが発生した場合
+    reportOutputElement.style.color = 'red';
     reportOutputElement.textContent = `レポートの生成に失敗しました: ${error.message}`;
   } finally {
-    // ボタンのテキストを元に戻す
     generateReportButton.textContent = 'レポートを生成';
     generateReportButton.disabled = false;
+  }
+});
+// ▲▲▲ ここまで置き換える ▲▲▲
+
+
+// ▼▼▼ ここにStripe用の処理を丸ごと追加 ▼▼▼
+const checkoutButton = document.getElementById('checkout-button');
+const paymentStatusElement = document.getElementById('payment-status');
+
+checkoutButton.addEventListener('click', async () => {
+  paymentStatusElement.textContent = '決済ページを準備しています...';
+  try {
+    // 1. メインプロセスにCheckoutセッションの作成を依頼
+    const result = await window.api.createCheckoutSession();
+
+    if (result.success) {
+      // 2. 成功したら、受け取ったURLを外部ブラウザで開く
+      paymentStatusElement.textContent = 'ブラウザで決済ページを開きます。';
+      window.api.openExternalUrl(result.url);
+    } else {
+      paymentStatusElement.style.color = 'red';
+      paymentStatusElement.textContent = result.message;
+    }
+  } catch (error) {
+    paymentStatusElement.style.color = 'red';
+    paymentStatusElement.textContent = `エラーが発生しました: ${error.message}`;
   }
 });
 // ▲▲▲ ここまで ▲▲▲

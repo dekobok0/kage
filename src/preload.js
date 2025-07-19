@@ -33,4 +33,9 @@ contextBridge.exposeInMainWorld('api', {
   generateReport: () => ipcRenderer.invoke('generate-report'),
   // ▲▲▲ ここまで ▲▲▲
 
+  // ▼▼▼ この2つの関数を追加 ▼▼▼
+  createCheckoutSession: () => ipcRenderer.invoke('create-checkout-session'),
+  openExternalUrl: (url) => ipcRenderer.send('open-external-url', url),
+  // ▲▲▲ ここまで ▲▲▲
+
 });

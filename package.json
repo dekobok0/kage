@@ -18,9 +18,14 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "dotenv": "^17.2.0",
+    "electron-log": "^5.4.1",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^10.1.0",
-    "python-shell": "^5.0.0"
+    "pdf-lib": "^1.17.1",
+    "python-shell": "^5.0.0",
+    "stripe": "^18.3.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.8.1",
