@@ -1,0 +1,14 @@
+{
+    "name": "kage-app-monorepo",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+      "packages/*"
+    ],
+    "scripts": {
+      "dev": "concurrently \"npm:dev --workspace=packages/bff-server\" \"npm:start --workspace=packages/electron-app\""
+    },
+    "devDependencies": {
+      "concurrently": "^8.2.2"
+    }
+  }

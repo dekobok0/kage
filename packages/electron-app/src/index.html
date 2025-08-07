@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Kage</title>
+    <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+    <!-- モード切り替えボタン -->
+    <div id="mode-switcher">
+        <button id="prep-mode-btn" class="mode-btn active">準備モード</button>
+        <button id="interview-mode-btn" class="mode-btn">面接モード</button>
+    </div>
+
+    <!-- 準備モード（現在の画面） -->
+    <div id="preparation-mode" class="mode-content active">
+        <h1>Kage 面接アシスタント - 準備モード</h1>
+
+    <div id="profile-section">
+        <h2>マイプロフィール - 自己開示と合理的配慮のための情報</h2>
+            <p class="profile-intro">あなたの特性を理解し、面接で最適なサポートを提供するための情報を教えてください。全ての項目は任意です。</p>
+            
+        <form id="profile-form">
+            <!-- 第1層：根源的な認知・情報処理スタイル -->
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" data-target="layer1">
+                        <span class="accordion-title">第1層：あなたの思考・情報処理スタイル</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="layer1">
+            <fieldset>
+                            <legend>根源的な特性</legend>
+                            <div class="form-group">
+                                <label for="user-characteristics">① あなたの特性・配慮してほしい点:</label>
+                    <textarea id="user-characteristics" rows="4" cols="80" placeholder="例：視覚思考者です。思考を言語化するのに少し時間がかかります。感覚過敏があり、明るい照明や大きな音が苦手です。"></textarea>
+                </div>
+                            
+                            <div class="form-group">
+                                <label>② 情報を理解・記憶する際、最も効果的な方法は？</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" id="info_visual" name="information_processing" value="visual">
+                                        <span class="radio-text">視覚的に（図表、チャート、色分け）</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="info_verbal" name="information_processing" value="verbal">
+                                        <span class="radio-text">言語的に（文章、説明、議論）</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="info_kinesthetic" name="information_processing" value="kinesthetic">
+                                        <span class="radio-text">実践的に（体験、手を動かす、試行錯誤）</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="info_auditory" name="information_processing" value="auditory">
+                                        <span class="radio-text">聴覚的に（音声、音楽、リズム）</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>③ 新しいことを学ぶ際、どのような順序が最も理解しやすいですか？</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" id="learn_linear" name="learning_style" value="linear">
+                                        <span class="radio-text">段階的に、順番通りに進める</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="learn_holistic" name="learning_style" value="holistic">
+                                        <span class="radio-text">全体像を先に把握してから詳細へ</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="learn_experimental" name="learning_style" value="experimental">
+                                        <span class="radio-text">実際に試してみながら理解する</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+
+                <!-- 第2層：対人・業務特性 -->
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" data-target="layer2">
+                        <span class="accordion-title">第2層：あなたの対人・業務特性</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="layer2">
+                        <fieldset>
+                            <legend>持続的な特性</legend>
+                            <div class="form-group">
+                                <label>④ チームでの作業において、あなたの傾向は？</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" id="team_collaborative" name="team_style" value="collaborative">
+                                        <span class="radio-text">積極的に意見を出し、他者と協力する</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="team_independent" name="team_style" value="independent">
+                                        <span class="radio-text">個人で深く考えてから、成果を共有する</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="team_supportive" name="team_style" value="supportive">
+                                        <span class="radio-text">他者の作業をサポートし、調整役を担う</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>⑤ 変化や新しい状況に対するあなたの反応は？</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" id="change_embrace" name="change_response" value="embrace">
+                                        <span class="radio-text">新しいことに積極的に挑戦する</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="change_cautious" name="change_response" value="cautious">
+                                        <span class="radio-text">慎重に検討してから行動する</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="change_adaptable" name="change_response" value="adaptable">
+                                        <span class="radio-text">状況に応じて柔軟に対応する</span>
+                                    </label>
+                                </div>
+                </div>
+            </fieldset>
+                </div>
+                </div>
+
+                <!-- 第3層：具体的な環境ニーズ -->
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" data-target="layer3">
+                        <span class="accordion-title">第3層：具体的な職場環境ニーズ</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="layer3">
+            <fieldset>
+                            <legend>実践的な配慮</legend>
+                            <div class="form-group">
+                                <label for="resume-input">⑥ 経歴・スキル・応募情報:</label>
+                    <textarea id="resume-input" rows="8" cols="80" placeholder="ここに職務経歴書や自己PR、応募企業の求人情報などを貼り付けてください。"></textarea>
+                </div>
+                            
+                            <div class="form-group">
+                                <label>⑦ 職場環境で特に配慮してほしい点は？（複数選択可）</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="env_lighting" value="lighting">
+                                        <span class="checkbox-text">照明の調整（明るさ、色温度）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="env_noise" value="noise">
+                                        <span class="checkbox-text">音環境の調整（静寂、BGM、ノイズキャンセリング）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="env_space" value="space">
+                                        <span class="checkbox-text">物理的空間（個室、パーティション、座席位置）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="env_schedule" value="schedule">
+                                        <span class="checkbox-text">スケジュール調整（休憩時間、勤務時間）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="env_tech" value="tech">
+                                        <span class="checkbox-text">技術的支援（ソフトウェア、デバイス）</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            
+            <!-- モジュール1：How I Connect -->
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" data-target="module1">
+                        <span class="accordion-title">モジュール1：コミュニケーションの好み</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="module1">
+            <fieldset>
+                            <legend>How I Connect</legend>
+                            <div class="form-group">
+                                <label>⑧ 指示を理解する際、最も分かりやすい形式は？</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" id="inst_written" name="instruction_preference" value="written">
+                                        <span class="radio-text">書面で提供される（メール、ドキュメント）</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="inst_verbal" name="instruction_preference" value="verbal">
+                                        <span class="radio-text">口頭で説明される（通話、対面）</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="inst_visual" name="instruction_preference" value="visual">
+                                        <span class="radio-text">視覚的に示される（図、フローチャート）</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="inst_demonstration" name="instruction_preference" value="demonstration">
+                                        <span class="radio-text">実際にやって見せる（デモンストレーション）</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>⑨ 会議で効果的に参加するために、役立つことは？（複数選択可）</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="meet_agenda" value="agenda">
+                                        <span class="checkbox-text">事前にアジェンダを受け取ること</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="meet_time" value="process_time">
+                                        <span class="checkbox-text">応答する前に考える時間があること</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="meet_chat" value="chat_option">
+                                        <span class="checkbox-text">考えをチャットで共有する選択肢があること</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="meet_visual_aids" value="visual_aids">
+                                        <span class="checkbox-text">視覚資料（スライド、図表）があること</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="meet_breakout" value="breakout">
+                                        <span class="checkbox-text">小グループでの議論時間があること</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>⑩ フィードバックを受ける際、どのような形式が最も効果的ですか？</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" id="feedback_written" name="feedback_preference" value="written">
+                                        <span class="radio-text">書面での詳細なフィードバック</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="feedback_verbal" name="feedback_preference" value="verbal">
+                                        <span class="radio-text">1対1での対話形式</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="feedback_visual" name="feedback_preference" value="visual">
+                                        <span class="radio-text">図表やチェックリストを使った説明</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="feedback_gradual" name="feedback_preference" value="gradual">
+                                        <span class="radio-text">段階的に、少しずつ改善点を共有</span>
+                                    </label>
+                                </div>
+                </div>
+                        </fieldset>
+                </div>
+                </div>
+            
+            <!-- モジュール2：How I Focus & Achieve -->
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" data-target="module2">
+                        <span class="accordion-title">モジュール2：得意な働き方</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="module2">
+            <fieldset>
+                            <legend>How I Focus & Achieve</legend>
+                            <div class="form-group">
+                                <label>⑪ どのような種類の仕事が最も得意ですか？</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" id="task_structured" name="task_structure" value="structured">
+                                        <span class="radio-text">明確で、順番が決まったステップがある仕事</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="task_flexible" name="task_structure" value="flexible">
+                                        <span class="radio-text">最終目標は明確だが、方法は自由な仕事</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="task_iterative" name="task_structure" value="iterative">
+                                        <span class="radio-text">試行錯誤しながら改善していく仕事</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="task_collaborative" name="task_structure" value="collaborative">
+                                        <span class="radio-text">他者と協力しながら進める仕事</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>⑫ 理想的な仕事のリズムは？</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" id="rhythm_deep_focus" name="work_rhythm" value="deep_focus">
+                                        <span class="radio-text">中断されない長い集中時間</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="rhythm_varied_tasks" name="work_rhythm" value="varied_tasks">
+                                        <span class="radio-text">様々なタスクの組み合わせ</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="rhythm_sprints" name="work_rhythm" value="sprints">
+                                        <span class="radio-text">短期集中型の作業</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="rhythm_flow" name="work_rhythm" value="flow">
+                                        <span class="radio-text">自分のペースで没頭できる時間</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>⑬ 集中力を維持するために、どのような環境が効果的ですか？（複数選択可）</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="focus_quiet" value="quiet">
+                                        <span class="checkbox-text">静寂な環境</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="focus_background" value="background">
+                                        <span class="checkbox-text">適度な背景音（BGM、自然音）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="focus_visual" value="visual">
+                                        <span class="checkbox-text">視覚的な刺激を最小限にした環境</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="focus_comfort" value="comfort">
+                                        <span class="checkbox-text">快適な温度・湿度</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="focus_breaks" value="breaks">
+                                        <span class="checkbox-text">定期的な休憩時間</span>
+                                    </label>
+                                </div>
+                </div>
+                        </fieldset>
+                </div>
+                </div>
+
+            <!-- モジュール3：My Sensory Needs -->
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" data-target="module3">
+                        <span class="accordion-title">モジュール3：理想的な職場環境</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="module3">
+            <fieldset>
+                            <legend>My Sensory Needs</legend>
+                            <div class="form-group">
+                                <label>⑭ 感覚的な配慮で重要なものは？（複数選択可）</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="sensory_light" value="light">
+                                        <span class="checkbox-text">照明の調整（明るさ、色、点滅の有無）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="sensory_sound" value="sound">
+                                        <span class="checkbox-text">音の調整（音量、音質、突然の音）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="sensory_touch" value="touch">
+                                        <span class="checkbox-text">触覚的な配慮（素材、温度、圧迫感）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="sensory_smell" value="smell">
+                                        <span class="checkbox-text">嗅覚的な配慮（香り、空気の質）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="sensory_movement" value="movement">
+                                        <span class="checkbox-text">動きの配慮（振動、揺れ、姿勢）</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>⑮ 物理的環境で重要な要素は？（複数選択可）</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="physical_space" value="space">
+                                        <span class="checkbox-text">十分な作業スペース</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="physical_privacy" value="privacy">
+                                        <span class="checkbox-text">プライバシーの確保</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="physical_accessibility" value="accessibility">
+                                        <span class="checkbox-text">アクセシビリティ（移動、操作）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="physical_ergonomics" value="ergonomics">
+                                        <span class="checkbox-text">エルゴノミクス（椅子、机、デバイス）</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="physical_climate" value="climate">
+                                        <span class="checkbox-text">温度・湿度・空気質の管理</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </fieldset>
+                </div>
+                </div>
+
+            <!-- モジュール4：How I Thrive -->
+                <div class="accordion-section">
+                    <button type="button" class="accordion-header" data-target="module4">
+                        <span class="accordion-title">モジュール4：モチベーションとマネジメント</span>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="accordion-content" id="module4">
+            <fieldset>
+                            <legend>How I Thrive</legend>
+                            <div class="form-group">
+                                <label>⑯ あなたのモチベーションを最も高めるものは？</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" id="motivation_achievement" name="motivation_type" value="achievement">
+                                        <span class="radio-text">目標達成や成果を認められること</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="motivation_learning" name="motivation_type" value="learning">
+                                        <span class="radio-text">新しいことを学んだり成長できること</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="motivation_connection" name="motivation_type" value="connection">
+                                        <span class="radio-text">チームや他者との良い関係</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="motivation_autonomy" name="motivation_type" value="autonomy">
+                                        <span class="radio-text">自分の判断で仕事を進められること</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" id="motivation_impact" name="motivation_type" value="impact">
+                                        <span class="radio-text">社会や他者に貢献できること</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>⑰ ストレスや困難な状況に対処する際、どのような支援が最も効果的ですか？（複数選択可）</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="support_communication" value="communication">
+                                        <span class="checkbox-text">定期的なコミュニケーション機会</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="support_resources" value="resources">
+                                        <span class="checkbox-text">必要なリソースやツールの提供</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="support_flexibility" value="flexibility">
+                                        <span class="checkbox-text">柔軟なスケジュールや作業方法</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="support_mentoring" value="mentoring">
+                                        <span class="checkbox-text">メンタリングやコーチング</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="support_breaks" value="breaks">
+                                        <span class="checkbox-text">適切な休憩やリフレッシュ時間</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>⑱ キャリア開発において、どのような支援が最も価値がありますか？（複数選択可）</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="career_training" value="training">
+                                        <span class="checkbox-text">スキル開発のための研修機会</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="career_mentoring" value="mentoring">
+                                        <span class="checkbox-text">キャリアメンタリング</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="career_networking" value="networking">
+                                        <span class="checkbox-text">ネットワーキング機会</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="career_feedback" value="feedback">
+                                        <span class="checkbox-text">定期的なフィードバック</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="career_visibility" value="visibility">
+                                        <span class="checkbox-text">成果の可視化や発信支援</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </fieldset>
+                </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="save-button">
+                        <span class="button-icon">💾</span>
+                        プロフィールを保存する
+                    </button>
+                    <div class="save-status" id="save-status"></div>
+                </div>
+        </form>
+    </div>
+    <hr>
+
+        <!-- レポートセクション -->
+    <hr>
+    <div id="report-section" style="margin-top: 20px;">
+        <h2>合理的配慮レポート</h2>
+            <p class="section-intro">面接での支援内容を記録し、合理的配慮の提供努力を文書化するレポートを生成できます。</p>
+            <button id="generate-report-button" class="action-button">
+                <span class="button-icon">📄</span>
+                レポートを生成する
+            </button>
+        <div style="margin-top: 10px;">
+            <h3>生成されたレポート:</h3>
+            <pre id="report-output" style="white-space: pre-wrap; word-wrap: break-word; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; min-height: 100px;"></pre>
+        </div>
+    </div>
+     
+    <hr>
+    <div id="payment-section" style="margin-top: 20px;">
+        <h2>サブスクリプション</h2>
+        <p>Kageの全機能を利用するには、サブスクリプション登録が必要です。</p>
+        <button id="checkout-button">購入ページへ進む</button>
+        <p id="payment-status" style="color: blue;"></p>
+    </div>
+    </div>
+
+    <!-- 面接モード（コンパクトウィジェット） -->
+    <div id="interview-mode" class="mode-content">
+        <div id="interview-widget">
+            <div id="widget-header">
+                <h3>Kage 面接アシスタント</h3>
+                <div id="widget-controls">
+                    <button id="minimize-btn" title="最小化">−</button>
+                    <button id="close-btn" title="閉じる">×</button>
+                </div>
+            </div>
+            
+            <div id="widget-content">
+                <div id="status-indicator">
+                    <span id="mic-status">🎤 音声認識待機中...</span>
+                </div>
+                
+                <div id="conversation-area">
+                    <div id="question-display">
+                        <h4>面接官の質問:</h4>
+                        <p id="user-question-widget">（質問を待機中...）</p>
+                    </div>
+                    
+                    <div id="ai-response-display">
+                        <h4>AIのアドバイス:</h4>
+                        <div id="ai-answer-widget">（回答を待機中...）</div>
+                    </div>
+                </div>
+                
+                <div id="widget-footer">
+                    <button id="toggle-mic-btn">🎤 マイクON/OFF</button>
+                    <button id="clear-chat-btn">🗑️ 履歴クリア</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./renderer.js"></script>
+</body>
+</html>

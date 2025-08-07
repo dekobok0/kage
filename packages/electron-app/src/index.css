@@ -1,0 +1,944 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  margin: auto;
+  max-width: 60rem;
+  padding: 2rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* モード切り替えボタン */
+#mode-switcher {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+}
+
+.mode-btn {
+  padding: 10px 20px;
+  border: 2px solid #3498db;
+  background: white;
+  color: #3498db;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+  background: #3498db;
+  color: white;
+}
+
+.mode-btn.active {
+  background: #3498db;
+  color: white;
+}
+
+/* モードコンテンツ */
+.mode-content {
+  display: none;
+}
+
+.mode-content.active {
+  display: block;
+}
+
+/* 面接モード用ウィジェット */
+#interview-widget {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 350px;
+  height: 500px;
+  background: white;
+  border: 2px solid #3498db;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+}
+
+#widget-header {
+  background: #3498db;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#widget-header h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+#widget-controls {
+  display: flex;
+  gap: 5px;
+}
+
+#widget-controls button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+#widget-controls button:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+#widget-content {
+  flex: 1;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#status-indicator {
+  text-align: center;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+#mic-status {
+  font-size: 12px;
+  color: #666;
+}
+
+#conversation-area {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+#question-display, #ai-response-display {
+  margin-bottom: 15px;
+}
+
+#question-display h4, #ai-response-display h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #666;
+  font-weight: bold;
+}
+
+#user-question-widget, #ai-answer-widget {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  line-height: 1.4;
+  min-height: 40px;
+  word-wrap: break-word;
+}
+
+#ai-answer-widget {
+  background: #e8f4fd;
+  border-left: 3px solid #3498db;
+}
+
+#widget-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+#widget-footer button {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+}
+
+#widget-footer button:hover {
+  background: #f8f9fa;
+  border-color: #3498db;
+}
+
+/* ウィジェット最小化状態 */
+#interview-widget.minimized {
+  height: 50px;
+}
+
+#interview-widget.minimized #widget-content {
+  display: none;
+}
+
+#interview-widget.minimized #widget-header {
+  border-radius: 10px;
+}
+
+h1 {
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 2rem;
+  border-bottom: 3px solid #3498db;
+  padding-bottom: 1rem;
+}
+
+h2 {
+  color: #34495e;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+  border-left: 4px solid #3498db;
+}
+
+/* プロフィールフォームのスタイル */
+#profile-section {
+  background: #f8f9fa;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+fieldset {
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  background: white;
+}
+
+legend {
+  font-weight: bold;
+  color: #2c3e50;
+  padding: 0 1rem;
+  font-size: 1.1em;
+}
+
+/* 三層構造モデルの視覚的区別 */
+fieldset:first-of-type legend {
+  color: #e74c3c;
+  border-left: 4px solid #e74c3c;
+  padding-left: 0.5rem;
+}
+
+fieldset:nth-of-type(2) legend {
+  color: #f39c12;
+  border-left: 4px solid #f39c12;
+  padding-left: 0.5rem;
+}
+
+fieldset:nth-of-type(3) legend {
+  color: #27ae60;
+  border-left: 4px solid #27ae60;
+  padding-left: 0.5rem;
+}
+
+/* 4つのモジュールの視覚的区別 */
+fieldset:nth-of-type(4) legend {
+  color: #3498db;
+  border-left: 4px solid #3498db;
+  padding-left: 0.5rem;
+}
+
+fieldset:nth-of-type(5) legend {
+  color: #9b59b6;
+  border-left: 4px solid #9b59b6;
+  padding-left: 0.5rem;
+}
+
+fieldset:nth-of-type(6) legend {
+  color: #1abc9c;
+  border-left: 4px solid #1abc9c;
+  padding-left: 0.5rem;
+}
+
+fieldset:nth-of-type(7) legend {
+  color: #e67e22;
+  border-left: 4px solid #e67e22;
+  padding-left: 0.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.9em;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+input[type="radio"], input[type="checkbox"] {
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+input[type="radio"] + label, input[type="checkbox"] + label {
+  display: inline;
+  font-weight: normal;
+  margin-left: 0.25rem;
+}
+
+/* 質問番号のスタイル */
+label:first-child {
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+/* 送信ボタン */
+button[type="submit"] {
+  background: #3498db;
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+button[type="submit"]:hover {
+  background: #2980b9;
+}
+
+button[type="submit"]:active {
+  transform: translateY(1px);
+}
+
+/* レポートセクション */
+#report-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+#generate-report-button {
+  background: #27ae60;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#generate-report-button:hover {
+  background: #229954;
+}
+
+#generate-report-button:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+#report-output {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+/* 支払いセクション */
+#payment-section {
+  background: #fff3cd;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #ffeaa7;
+  margin-top: 2rem;
+}
+
+#checkout-button {
+  background: #f39c12;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#checkout-button:hover {
+  background: #e67e22;
+}
+
+/* 面接セクション */
+#user-question, #ai-answer {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  margin: 1rem 0;
+  min-height: 2rem;
+}
+
+/* ▼▼▼ アコーディオン機能のスタイル ▼▼▼ */
+.accordion-section {
+  margin-bottom: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.accordion-header {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.accordion-header:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.accordion-header:active {
+  transform: translateY(0);
+}
+
+.accordion-icon {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.accordion-header.active .accordion-icon {
+  transform: rotate(180deg);
+}
+
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: #fafafa;
+}
+
+.accordion-content.active {
+  max-height: 2000px;
+  padding: 1.5rem;
+}
+
+/* プロフィール紹介文 */
+.profile-intro {
+  background: #e8f4fd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #2196f3;
+  color: #1565c0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* フォームグループ */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* ラジオボタングループ */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.radio-option:hover {
+  border-color: #2196f3;
+  background: #f8f9ff;
+  transform: translateX(4px);
+}
+
+.radio-option input[type="radio"] {
+  margin-right: 0.75rem;
+  transform: scale(1.2);
+}
+
+.radio-text {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* チェックボックスグループ */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.checkbox-option:hover {
+  border-color: #4caf50;
+  background: #f8fff9;
+  transform: translateX(4px);
+}
+
+.checkbox-option input[type="checkbox"] {
+  margin-right: 0.75rem;
+  transform: scale(1.2);
+}
+
+.checkbox-text {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* テキストエリアの改善 */
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+textarea::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+/* フォームアクション */
+.form-actions {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.save-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.save-button:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+}
+
+.save-button:active {
+  transform: translateY(0);
+}
+
+.button-icon {
+  font-size: 1.2rem;
+}
+
+.save-status {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  min-height: 1.5rem;
+}
+
+.save-status.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.save-status.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* フィールドセットの改善 */
+fieldset {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 0;
+  background: white;
+}
+
+legend {
+  font-weight: 700;
+  color: #333;
+  padding: 0 0.5rem;
+  font-size: 1rem;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  body {
+    max-width: 100%;
+    padding: 1rem;
+  }
+  
+  fieldset {
+    padding: 1rem;
+  }
+  
+  textarea {
+    font-size: 16px; /* iOSでのズーム防止 */
+  }
+  
+  #interview-widget {
+    width: 300px;
+    right: 10px;
+  }
+  
+  #mode-switcher {
+    right: 10px;
+    top: 10px;
+  }
+}
+
+/* アクセシビリティの向上 */
+input[type="radio"]:focus, input[type="checkbox"]:focus {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+/* 読み込み状態の表示 */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* 成功・エラーメッセージ */
+.success {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.error {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.warning {
+  color: #f39c12;
+  font-weight: bold;
+}
+
+/* 印刷時のスタイルシート */
+@media print {
+  /* ▼▼▼ コアリセット：コンテンツを閉じ込めている「檻」を破壊 ▼▼▼ */
+  body, 
+  #preparation-mode, 
+  #interview-mode, 
+  #profile-section, 
+  #report-section, 
+  #payment-section,
+  fieldset,
+  .mode-content {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    position: static !important;
+    display: block !important;
+  }
+  /* ▲▲▲ ここまで追加 ▲▲▲ */
+
+  /* ▼▼▼ 不要なUI要素を非表示 ▼▼▼ */
+  #mode-switcher,
+  #widget-header,
+  #widget-controls,
+  #widget-footer,
+  button,
+  input[type="submit"],
+  #generate-report-button,
+  #checkout-button {
+    display: none !important;
+  }
+  /* ▲▲▲ ここまで追加 ▲▲▲ */
+
+  /* ▼▼▼ 印刷時のレイアウト最適化 ▼▼▼ */
+  body {
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    padding: 20pt !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  h1, h2, h3, h4 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  /* Q&Aログの個々の項目は改ページしない */
+  .qa-log-entry {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1em !important;
+  }
+
+  /* フィールドセットの印刷最適化 */
+  fieldset {
+    border: 1px solid #ccc !important;
+    margin: 1em 0 !important;
+    padding: 1em !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  legend {
+    font-weight: bold !important;
+    padding: 0 0.5em !important;
+  }
+
+  /* テキストエリアとラジオボタンの印刷表示 */
+  textarea {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    min-height: auto !important;
+    height: auto !important;
+  }
+
+  input[type="radio"], 
+  input[type="checkbox"] {
+    display: inline-block !important;
+  }
+
+  /* レポートセクションの印刷最適化 */
+  #report-section {
+    margin-top: 2em !important;
+    page-break-before: auto !important;
+    break-before: auto !important;
+  }
+
+  /* 面接モードのウィジェットを印刷時は通常表示に */
+  #interview-widget {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    border: 1px solid #ccc !important;
+    margin: 1em 0 !important;
+    padding: 1em !important;
+  }
+
+  #widget-content {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #conversation-area {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #user-question-widget, 
+  #ai-answer-widget {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+  }
+  /* ▲▲▲ ここまで追加 ▲▲▲ */
+}
+
+/* セクション紹介文 */
+.section-intro {
+  background: #fff3cd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #ffc107;
+  color: #856404;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* アクションボタン */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.action-button:hover {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+}
+
+.action-button:active {
+  transform: translateY(0);
+}
+
+.action-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* レポート出力エリアの改善 */
+#report-output {
+  background: #f8f9fa !important;
+  border: 2px solid #e9ecef !important;
+  border-radius: 8px;
+  padding: 1.5rem !important;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* 支払いセクションの改善 */
+#payment-section {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+#payment-section h2 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+#payment-section p {
+  color: #666;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+#checkout-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+}
+
+#checkout-button:hover {
+  background: linear-gradient(135deg, #ee5a52 0%, #d63031 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(255, 107, 107, 0.4);
+}
+
+#checkout-button:active {
+  transform: translateY(0);
+}
+
+#payment-status {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  min-height: 1.5rem;
+}
+
+#payment-status:not(:empty) {
+  background: #e8f4fd;
+  color: #1565c0;
+  border: 1px solid #b3d9ff;
+}
