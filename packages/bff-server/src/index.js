@@ -1,43 +1,50 @@
-
 const express = require('express');
-const cors = require('cors'); // corsをインポート
+const cors = require('cors');
+// SpeechClientのみをインポートします
+const { SpeechClient } = require('@google-cloud/speech');
 
-// Expressアプリを作成します
 const app = express();
-
-// CORSを設定してElectronアプリからの通信を許可
 app.use(cors());
+app.use(express.json({ limit: '50mb' }));
 
-// アプリがJSON形式のリクエストを理解できるように設定します
-app.use(express.json());
+// ★★★ 認証情報なしで初期化します！ ★★★
+// Cloud Run上で動かすと、--service-accountで指定した権限を自動で使ってくれます。
+const speechClient = new SpeechClient();
+console.log('Speech-to-Text client initialized using ambient credentials.');
 
-// サーバーが動作しているか確認するためのシンプルなルート
-app.get('/', (req, res) => {
-  res.send('Kageサーバーは正常に動作しています！');
+// 文字起こしAPIエンドポイント
+app.post('/api/transcribe', async (req, res) => {
+    try {
+        const audioBytes = req.body.audioContent;
+        if (!audioBytes) {
+            return res.status(400).json({ error: 'audioContent is missing' });
+        }
+
+        const audio = { content: audioBytes };
+        const config = {
+            encoding: 'WEBM_OPUS',
+            sampleRateHertz: 48000,
+            languageCode: 'ja-JP',
+            enableAutomaticPunctuation: true,
+        };
+        const request = { audio, config };
+
+        const [response] = await speechClient.recognize(request);
+        const transcription = response.results
+           .map(result => result.alternatives.transcript)
+           .join('\n');
+        
+        console.log(`Transcription: ${transcription}`);
+        res.json({ success: true, transcription: transcription });
+
+    } catch (error) {
+        console.error('Error during transcription:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
-// ★★★ ここが将来、Electronアプリからのリクエストを受け付ける窓口になります ★★★
-app.post('/api/transcribe', (req, res) => {
-  console.log('=== BFFサーバー: クライアントからリクエストを受け取りました ===');
-  console.log('リクエストボディ:', req.body);
-  
-  // 今はまだAI処理は行わず、固定のテスト用メッセージを返します
-  // これにより、クライアントとの通信が正しくできているかを確認できます
-  const response = {
-    message: 'BFFサーバーがリクエストを受け付けました！',
-    transcript: '（ここに将来、文字起こし結果が入ります）',
-    timestamp: new Date().toISOString()
-  };
-  
-  console.log('レスポンス:', response);
-  res.json(response);
-});
-
-// サーバーを起動するポート番号を設定します
-// Cloud Runのような環境では環境変数PORTが使われ、なければ8080番ポートを使います
 const PORT = process.env.PORT || 8080;
-
-// サーバーを起動し、リクエストを待ち受けます
 app.listen(PORT, () => {
-  console.log(`サーバーがポート${PORT}で起動しました。`);
+    // 起動時の非同期初期化は不要になりました
+    console.log(`BFF server listening on port ${PORT}`);
 });

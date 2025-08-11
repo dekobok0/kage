@@ -92,7 +92,7 @@ typings/
 out/
 
 # Secret files
-kage-gcp-key.jsong
+kage-gcp-key.json
 
 
 archive/
