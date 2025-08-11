@@ -6,6 +6,14 @@ contextBridge.exposeInMainWorld('api', {
   onPythonData: (callback) => {
     ipcRenderer.on('from-python', (event, data) => callback(data));
   },
+  
+  // ★★★ BFFサーバーとの通信用API ★★★
+  /**
+   * 音声データをBFFサーバーに送信して文字起こしを要求する
+   * @param {string} audioData - 音声データ
+   * @returns {Promise<object>} 文字起こし結果
+   */
+  transcribeAudio: (audioData) => ipcRenderer.invoke('transcribe-audio', audioData),
   // ▼▼▼ この関数を追加 ▼▼▼
   /**
    * プロフィールデータをメインプロセスに送信して保存を要求する

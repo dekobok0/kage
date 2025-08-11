@@ -424,3 +424,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 // ▲▲▲ ここまで追加 ▲▲▲
+
+// ★★★ BFFサーバーとの通信テスト機能 ★★★
+// テスト用のボタンが存在する場合の処理
+const testBffButton = document.getElementById('test-bff-button');
+if (testBffButton) {
+    testBffButton.addEventListener('click', async () => {
+        try {
+            testBffButton.textContent = '通信テスト中...';
+            testBffButton.disabled = true;
+            
+            // テスト用の音声データ（実際には空のデータ）
+            const testAudioData = 'test-audio-data';
+            
+            // BFFサーバーにテストリクエストを送信
+            const result = await window.api.transcribeAudio(testAudioData);
+            
+            if (result.success) {
+                console.log('BFF通信テスト成功:', result.data);
+                alert(`BFF通信テスト成功！\nサーバー応答: ${result.data.message}`);
+            } else {
+                console.error('BFF通信テスト失敗:', result.error);
+                alert(`BFF通信テスト失敗: ${result.error}`);
+            }
+        } catch (error) {
+            console.error('BFF通信テストでエラー:', error);
+            alert(`BFF通信テストでエラーが発生: ${error.message}`);
+        } finally {
+            testBffButton.textContent = 'BFF通信テスト';
+            testBffButton.disabled = false;
+        }
+    });
+}

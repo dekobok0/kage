@@ -11,14 +11,13 @@ if (process.stderr.isTTY) {
 // --- モジュールのインポート ---
 const { app, BrowserWindow, ipcMain, safeStorage, dialog, shell } = require('electron');
 const path = require('node:path');
-const { spawn } = require('child_process');
-const readline = require('node:readline');
 const Store = require('electron-store').default;
 const log = require('electron-log');
 const fs = require('fs');
 const { PDFDocument, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const Stripe = require('stripe');
+const axios = require('axios'); // BFFサーバーとの通信用
 
 
 // ▼▼▼ 修正点：Squirrelのセットアップイベントを早期に処理し、app.exit()を使用 ▼▼▼
@@ -617,111 +616,33 @@ ipcMain.on('open-external-url', (event, url) => {
 
 
 // index.js の適切な箇所に pyProcess の変数を定義します
-let pyProcess; 
-
-// (他の関数やIPCハンドラ...)
-
-// Pythonプロセスを起動する関数
-function spawnPython(scriptName, keyPath, options={}) {
-  const { pythonPath, scriptDir } = options;
-  log.info(`[Python] 起動試行: ${pythonPath}`);
-  log.info(`[Python] スクリプト: ${scriptName}`);
-  log.info(`[Python] 作業ディレクトリ: ${scriptDir}`);
-  log.info(`[Python] 認証キーパス: ${keyPath}`); // ★ 2. 渡されたパスをログに出力
-
-  // ★ 3. spawnの引数（配列）に keyPath を追加
-  pyProcess = spawn(pythonPath, ['-u', scriptName, keyPath], { 
-    cwd: scriptDir, 
-    shell: false, 
-    windowsHide: true, 
-    env: { ...process.env, PYTHONUTF8: '1', ELECTRON_NO_ATTACH_CONSOLE: 'true' } 
-  });
-  
-  // Pythonに渡すプロフィールデータを構築
+// ★★★ BFFサーバーとの通信を行うIPCハンドラー ★★★
+ipcMain.handle('transcribe-audio', async (event, audioData) => {
+  console.log('レンダラプロセスから音声データを受け取りました。BFFに送信します。');
   try {
-    const encryptedProfile = store.get('userProfile');
-    if (encryptedProfile && Object.keys(encryptedProfile).length > 0 && safeStorage.isEncryptionAvailable()) {
-        const profileForPython = {};
-         for (const key in encryptedProfile) {
-            const originalKey = key.replace('encrypted_', '');
-            let decryptedValue = safeStorage.decryptString(Buffer.from(encryptedProfile[key], 'base64'));
-            try { decryptedValue = JSON.parse(decryptedValue); } catch (e) { /* Not JSON */ }
-            profileForPython[originalKey] = decryptedValue;
-        }
-        pyProcess.stdin.write(JSON.stringify(profileForPython) + '\n');
-    } else {
-       pyProcess.stdin.write(JSON.stringify({}) + '\n'); // 空のプロファイルを渡す
-    }
+    const response = await axios.post('http://localhost:8080/api/transcribe', {
+      // audioDataをサーバーに送る
+      audioContent: audioData, 
+    });
+
+    // サーバーからの応答をレンダラプロセスに返す
+    console.log('BFFからの応答:', response.data);
+    return { success: true, data: response.data };
   } catch (error) {
-    log.error('Could not decrypt profile for Python backend', error);
-    pyProcess.stdin.write(JSON.stringify({}) + '\n');
+    console.error('BFFとの通信でエラーが発生:', error.message);
+    return { success: false, error: error.message };
   }
+});
 
-  const rl = readline.createInterface({ input: pyProcess.stdout });
-  rl.on('line', (line) => {
-    try {
-      const parsedData = JSON.parse(line);
-      
-      switch (parsedData.type) {
-        case 'log-interaction':
-          logAiInteraction();
-          if (parsedData.payload && parsedData.payload.user_query && parsedData.payload.ai_response) {
-            logConversation(parsedData.payload.user_query, parsedData.payload.ai_response);
-          }
-          break;
-        default:
-          if (mainWindow) { 
-            mainWindow.webContents.send('from-python', parsedData); 
-          }
-          break;
-      }
-    } catch (error) { 
-      log.warn(`Python stdout (not JSON line): ${line}`); 
-    }
-  });
-
-  pyProcess.stderr.on('data', (data) => log.error(`Python stderr: ${data.toString()}`));
-  pyProcess.on('close', (code) => {
-    log.info(`Python process exited with code ${code}`);
-    pyProcess = null; // プロセス参照をクリア
-  });
-  pyProcess.on('error', (err) => log.error('Failed to start Python process.', err));
-}
 
 
 // --- アプリケーションのライフサイクル ---
 app.whenReady().then(() => {
   createWindow();
 
-
-  const isPackaged = app.isPackaged;
-
-  let pythonExecutablePath;
-  let scriptDir;
-  let keyFilePath;
-  const scriptName = 'step_final.py';
-
-  if (isPackaged) {
-    // --- 本番環境のパス解決 ---
-    log.info('[Path] Resolving paths for PRODUCTION environment.');
-    // python_assets全体がresourcesにコピーされるので、それが基準
-    scriptDir = path.join(process.resourcesPath, 'python_assets');
-    pythonExecutablePath = path.join(scriptDir, 'python', 'python.exe');
-    keyFilePath = path.join(scriptDir, 'kage-gcp-key.json');
-  } else {
-    // --- 開発環境のパス解決 ---
-    log.info('[Path] Resolving paths for DEVELOPMENT environment.');
-    scriptDir = path.join(__dirname, '..', 'python_assets'); 
-    pythonExecutablePath = path.join(scriptDir, 'python', 'python.exe');
-    keyFilePath = path.join(scriptDir, 'kage-gcp-key.json');
-  }
-  
-  log.info(`[Path] Python Executable: ${pythonExecutablePath}`);
-  log.info(`[Path] Python Script Directory: ${scriptDir}`);
-  log.info(`[Path] GCP Key File: ${keyFilePath}`);
-
-  // ★ 3. Pythonプロセスを起動（keyFilePathを渡すように変更）
-  spawnPython(scriptName, keyFilePath, { pythonPath: pythonExecutablePath, scriptDir: scriptDir });
+  // ★★★ BFFサーバーとの通信準備完了 ★★★
+  log.info('[BFF] BFFサーバーとの通信準備が完了しました。');
+  log.info('[BFF] ポート8080でBFFサーバーが起動していることを確認してください。');
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -733,13 +654,5 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
-  }
-});
-
-// アプリケーションが終了する直前にPythonプロセスを確実に終了させる
-app.on('will-quit', () => {
-  if (pyProcess) {
-    log.info('[Electron] アプリケーション終了のため、Pythonプロセスを強制終了します。');
-    pyProcess.kill('SIGTERM');
   }
 });
