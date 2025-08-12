@@ -425,6 +425,139 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 // ▲▲▲ ここまで追加 ▲▲▲
 
+// ★★★ BFF統合のための音声処理機能 ★★★
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+// 音声録音の開始
+async function startRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const reader = new FileReader();
+            
+            reader.onload = async () => {
+                const base64Audio = reader.result.split(',')[1]; // Base64データを抽出
+                
+                try {
+                    // BFFサーバーに音声データを送信
+                    const result = await window.api.transcribeAudio(base64Audio);
+                    
+                    if (result.success) {
+                        // 音声認識結果をUIに表示
+                        const aiAnswerWidget = document.getElementById('ai-answer-widget');
+                        if (aiAnswerWidget) {
+                            aiAnswerWidget.textContent = result.data.transcription || '音声認識が完了しました';
+                        }
+                        
+                        // 会話ログを保存
+                        if (result.data.transcription) {
+                            await window.api.saveConversationLogBff([
+                                {
+                                    type: 'Q',
+                                    content: '[音声入力]',
+                                    timestamp: new Date().toISOString()
+                                },
+                                {
+                                    type: 'A_chunk',
+                                    content: result.data.transcription,
+                                    timestamp: new Date().toISOString()
+                                }
+                            ]);
+                        }
+                    } else {
+                        console.error('音声認識失敗:', result.error);
+                        alert(`音声認識に失敗しました: ${result.error}`);
+                    }
+                } catch (error) {
+                    console.error('BFF通信エラー:', error);
+                    alert(`BFF通信でエラーが発生しました: ${error.message}`);
+                }
+            };
+            
+            reader.readAsDataURL(audioBlob);
+        };
+        
+        mediaRecorder.start();
+        isRecording = true;
+        
+        // UI更新
+        const micStatus = document.getElementById('mic-status');
+        if (micStatus) {
+            micStatus.textContent = '🎤 録音中...';
+            micStatus.style.color = '#e74c3c';
+        }
+        
+        console.log('音声録音を開始しました');
+    } catch (error) {
+        console.error('音声録音の開始に失敗:', error);
+        alert('マイクへのアクセスが許可されていません');
+    }
+}
+
+// 音声録音の停止
+function stopRecording() {
+    if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        
+        // ストリームを停止
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        
+        // UI更新
+        const micStatus = document.getElementById('mic-status');
+        if (micStatus) {
+            micStatus.textContent = '🎤 音声認識待機中...';
+            micStatus.style.color = '#27ae60';
+        }
+        
+        console.log('音声録音を停止しました');
+    }
+}
+
+// マイクボタンのクリックイベントを更新
+toggleMicBtn.addEventListener('click', () => {
+    if (!isRecording) {
+        startRecording();
+    } else {
+        stopRecording();
+    }
+});
+
+// BFFサーバーのヘルスチェック
+async function checkBFFHealth() {
+    try {
+        const result = await window.api.bffHealthCheck();
+        if (result.success) {
+            console.log('BFFサーバーは正常に動作しています');
+            return true;
+        } else {
+            console.warn('BFFサーバーのヘルスチェックに失敗');
+            return false;
+        }
+    } catch (error) {
+        console.error('BFFヘルスチェックでエラー:', error);
+        return false;
+    }
+}
+
+// アプリケーション起動時にBFFヘルスチェックを実行
+document.addEventListener('DOMContentLoaded', async () => {
+    const isHealthy = await checkBFFHealth();
+    if (!isHealthy) {
+        console.warn('BFFサーバーが利用できません。一部の機能が制限される可能性があります。');
+    }
+});
+
 // ★★★ BFFサーバーとの通信テスト機能 ★★★
 // テスト用のボタンが存在する場合の処理
 const testBffButton = document.getElementById('test-bff-button');
@@ -434,6 +567,13 @@ if (testBffButton) {
             testBffButton.textContent = '通信テスト中...';
             testBffButton.disabled = true;
             
+            // BFFサーバーのヘルスチェック
+            const healthResult = await checkBFFHealth();
+            if (!healthResult) {
+                alert('BFFサーバーが利用できません。サーバーが起動しているか確認してください。');
+                return;
+            }
+            
             // テスト用の音声データ（実際には空のデータ）
             const testAudioData = 'test-audio-data';
             
@@ -442,14 +582,41 @@ if (testBffButton) {
             
             if (result.success) {
                 console.log('BFF通信テスト成功:', result.data);
-                alert(`BFF通信テスト成功！\nサーバー応答: ${result.data.message}`);
+                
+                // UIに結果を表示
+                const testStatus = document.getElementById('bff-test-status');
+                const testResult = document.getElementById('bff-test-result');
+                if (testStatus && testResult) {
+                    testStatus.style.display = 'block';
+                    testStatus.style.backgroundColor = '#d4edda';
+                    testStatus.style.border = '1px solid #c3e6cb';
+                    testResult.textContent = `成功！サーバー応答: ${JSON.stringify(result.data)}`;
+                }
             } else {
                 console.error('BFF通信テスト失敗:', result.error);
-                alert(`BFF通信テスト失敗: ${result.error}`);
+                
+                // UIにエラー結果を表示
+                const testStatus = document.getElementById('bff-test-status');
+                const testResult = document.getElementById('bff-test-result');
+                if (testStatus && testResult) {
+                    testStatus.style.display = 'block';
+                    testStatus.style.backgroundColor = '#f8d7da';
+                    testStatus.style.border = '1px solid #f5c6cb';
+                    testResult.textContent = `失敗: ${result.error}`;
+                }
             }
         } catch (error) {
             console.error('BFF通信テストでエラー:', error);
-            alert(`BFF通信テストでエラーが発生: ${error.message}`);
+            
+            // UIにエラー結果を表示
+            const testStatus = document.getElementById('bff-test-status');
+            const testResult = document.getElementById('bff-test-result');
+            if (testStatus && testResult) {
+                testStatus.style.display = 'block';
+                testStatus.style.backgroundColor = '#f8d7da';
+                testStatus.style.border = '1px solid #f5c6cb';
+                testResult.textContent = `エラーが発生: ${error.message}`;
+            }
         } finally {
             testBffButton.textContent = 'BFF通信テスト';
             testBffButton.disabled = false;

@@ -17,7 +17,9 @@ const fs = require('fs');
 const { PDFDocument, rgb } = require('pdf-lib');
 const fontkit = require('@pdf-lib/fontkit');
 const Stripe = require('stripe');
-const axios = require('axios'); // BFFサーバーとの通信用
+
+// BFF統合のための新しいモジュール
+const IPCHandlers = require('./main/ipcHandlers');
 
 
 // ▼▼▼ 修正点：Squirrelのセットアップイベントを早期に処理し、app.exit()を使用 ▼▼▼
@@ -615,24 +617,7 @@ ipcMain.on('open-external-url', (event, url) => {
 });
 
 
-// index.js の適切な箇所に pyProcess の変数を定義します
-// ★★★ BFFサーバーとの通信を行うIPCハンドラー ★★★
-ipcMain.handle('transcribe-audio', async (event, audioData) => {
-  console.log('レンダラプロセスから音声データを受け取りました。BFFに送信します。');
-  try {
-    const response = await axios.post('http://localhost:8080/api/transcribe', {
-      // audioDataをサーバーに送る
-      audioContent: audioData, 
-    });
-
-    // サーバーからの応答をレンダラプロセスに返す
-    console.log('BFFからの応答:', response.data);
-    return { success: true, data: response.data };
-  } catch (error) {
-    console.error('BFFとの通信でエラーが発生:', error.message);
-    return { success: false, error: error.message };
-  }
-});
+// BFF統合のためのIPCハンドラーは、IPCHandlersクラスで管理されます
 
 
 
@@ -640,8 +625,9 @@ ipcMain.handle('transcribe-audio', async (event, audioData) => {
 app.whenReady().then(() => {
   createWindow();
 
-  // ★★★ BFFサーバーとの通信準備完了 ★★★
-  log.info('[BFF] BFFサーバーとの通信準備が完了しました。');
+  // BFF統合のためのIPCハンドラーを初期化
+  const ipcHandlers = new IPCHandlers();
+  log.info('[BFF] BFF統合のためのIPCハンドラーが初期化されました。');
   log.info('[BFF] ポート8080でBFFサーバーが起動していることを確認してください。');
 
   app.on('activate', () => {

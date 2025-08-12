@@ -3,14 +3,14 @@
     "version": "1.0.0",
     "private": true,
     "workspaces": [
-      "packages/*"
+        "packages/*"
     ],
     "scripts": {
-      "dev": "concurrently \"npm:dev --workspace=packages/bff-server\" \"npm:start --workspace=packages/electron-app\"",
-      "postinstall": "node ./scripts/postinstall.js"
+        "dev": "concurrently \"npm:dev --workspace=packages/bff-server\" \"npm:start --workspace=packages/electron-app\"",
+        "postinstall": "node ./scripts/postinstall.js"
     },
     "devDependencies": {
         "concurrently": "^8.2.2",
         "fs-extra": "^11.3.1"
     }
-  }
+}

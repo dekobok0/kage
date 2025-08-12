@@ -2,6 +2,7 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
+
 contextBridge.exposeInMainWorld('api', {
   onPythonData: (callback) => {
     ipcRenderer.on('from-python', (event, data) => callback(data));
@@ -14,6 +15,33 @@ contextBridge.exposeInMainWorld('api', {
    * @returns {Promise<object>} 文字起こし結果
    */
   transcribeAudio: (audioData) => ipcRenderer.invoke('transcribe-audio', audioData),
+  
+  /**
+   * プロフィールデータをBFFサーバーに送信して保存を要求する
+   * @param {object} profileData - プロフィールデータ
+   * @returns {Promise<object>} 保存結果
+   */
+  saveProfileBff: (profileData) => ipcRenderer.invoke('save-profile-bff', profileData),
+  
+  /**
+   * 会話ログをBFFサーバーに送信して保存を要求する
+   * @param {array} conversationLog - 会話ログデータ
+   * @returns {Promise<object>} 保存結果
+   */
+  saveConversationLogBff: (conversationLog) => ipcRenderer.invoke('save-conversation-bff', conversationLog),
+  
+  /**
+   * BFFサーバーからレポート生成を要求する
+   * @param {object} reportParams - レポート生成パラメータ
+   * @returns {Promise<object>} レポート生成結果
+   */
+  generateReportBff: (reportParams) => ipcRenderer.invoke('generate-report-bff', reportParams),
+  
+  /**
+   * BFFサーバーのヘルスチェックを実行する
+   * @returns {Promise<object>} ヘルスチェック結果
+   */
+  bffHealthCheck: () => ipcRenderer.invoke('bff-health-check'),
   // ▼▼▼ この関数を追加 ▼▼▼
   /**
    * プロフィールデータをメインプロセスに送信して保存を要求する
