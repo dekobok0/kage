@@ -6,8 +6,8 @@ const BFFService = require('./bffService');
 const log = require('electron-log');
 
 class IPCHandlers {
-  constructor() {
-    this.bffService = new BFFService();
+  constructor(baseURL = 'http://localhost:8080') {
+    this.bffService = new BFFService(baseURL);
     this.initializeHandlers();
     log.info('[IPC] IPCHandlers initialized');
   }
@@ -41,21 +41,11 @@ class IPCHandlers {
       
       try {
         const result = await this.bffService.transcribeAudio(audioData);
-        
-        if (result.success) {
-          log.info('[IPC] Transcription completed successfully');
-        } else {
-          log.warn('[IPC] Transcription failed:', result.error);
-        }
-        
-        return result;
+        log.info('[IPC] Transcription completed successfully');
+        return { success: true, data: result };
       } catch (error) {
         log.error('[IPC] Transcription handler error:', error);
-        return {
-          success: false,
-          error: error.message,
-          timestamp: new Date().toISOString()
-        };
+        return { success: false, error: error.message };
       }
     });
   }
@@ -69,21 +59,11 @@ class IPCHandlers {
       
       try {
         const result = await this.bffService.saveProfile(profileData);
-        
-        if (result.success) {
-          log.info('[IPC] Profile saved via BFF successfully');
-        } else {
-          log.warn('[IPC] Profile save via BFF failed:', result.error);
-        }
-        
-        return result;
+        log.info('[IPC] Profile saved via BFF successfully');
+        return { success: true, data: result };
       } catch (error) {
         log.error('[IPC] Profile handler error:', error);
-        return {
-          success: false,
-          error: error.message,
-          timestamp: new Date().toISOString()
-        };
+        return { success: false, error: error.message };
       }
     });
   }
@@ -97,21 +77,11 @@ class IPCHandlers {
       
       try {
         const result = await this.bffService.saveConversationLog(conversationLog);
-        
-        if (result.success) {
-          log.info('[IPC] Conversation log saved via BFF successfully');
-        } else {
-          log.warn('[IPC] Conversation log save via BFF failed:', result.error);
-        }
-        
-        return result;
+        log.info('[IPC] Conversation log saved via BFF successfully');
+        return { success: true, data: result };
       } catch (error) {
         log.error('[IPC] Conversation handler error:', error);
-        return {
-          success: false,
-          error: error.message,
-          timestamp: new Date().toISOString()
-        };
+        return { success: false, error: error.message };
       }
     });
   }
@@ -125,21 +95,11 @@ class IPCHandlers {
       
       try {
         const result = await this.bffService.generateReport(reportParams);
-        
-        if (result.success) {
-          log.info('[IPC] Report generated via BFF successfully');
-        } else {
-          log.warn('[IPC] Report generation via BFF failed:', result.error);
-        }
-        
-        return result;
+        log.info('[IPC] Report generated via BFF successfully');
+        return { success: true, data: result };
       } catch (error) {
         log.error('[IPC] Report handler error:', error);
-        return {
-          success: false,
-          error: error.message,
-          timestamp: new Date().toISOString()
-        };
+        return { success: false, error: error.message };
       }
     });
   }
@@ -153,24 +113,11 @@ class IPCHandlers {
       
       try {
         const isHealthy = await this.bffService.healthCheck();
-        
-        if (isHealthy) {
-          log.info('[IPC] BFF server is healthy');
-        } else {
-          log.warn('[IPC] BFF server health check failed');
-        }
-        
-        return {
-          success: isHealthy,
-          timestamp: new Date().toISOString()
-        };
+        log.info('[IPC] BFF server is healthy');
+        return { success: true };
       } catch (error) {
         log.error('[IPC] Health check handler error:', error);
-        return {
-          success: false,
-          error: error.message,
-          timestamp: new Date().toISOString()
-        };
+        return { success: false, error: error.message };
       }
     });
   }

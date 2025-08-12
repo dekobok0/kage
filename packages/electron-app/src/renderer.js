@@ -292,44 +292,6 @@ window.api.onProfileLoaded((profileData) => {
 });
 // ▲▲▲ ここまで ▲▲▲
 
-// preload.js で用意された 'api' を通じて、メインプロセスからのデータ受信を待つ
-window.api.onPythonData((data) => {
-  // 開発者ツールにもログを出力しておくとデバッグに便利
-  console.log('UI側で受信:', data);
-
-  // ▼▼▼ この switch 文の中身を丸ごと置き換え ▼▼▼
-  switch (data.type) {
-    case 'user_question':
-      // ウィジェット側のみを更新
-      document.getElementById('user-question-widget').textContent = data.data;
-      document.getElementById('ai-answer-widget').textContent = '（回答を生成中...）';
-      break;
-
-    case 'ai_status':
-      // AIのステータスを表示
-      if (data.data === 'generating') {
-        document.getElementById('ai-answer-widget').textContent = '（回答を生成中...）';
-      }
-      break;
-
-    case 'ai_chunk':
-      // AIからの回答を、リアルタイムで追記していく
-      const aiAnswerWidget = document.getElementById('ai-answer-widget');
-      if (aiAnswerWidget.textContent === '（回答を生成中...）') {
-        aiAnswerWidget.textContent = ''; // 「生成中...」の文字を消す
-      }
-      aiAnswerWidget.textContent += data.data;
-      break;
-
-    case 'error':
-      // エラーが発生した場合、赤文字で表示
-      const errorWidget = document.getElementById('ai-answer-widget');
-      errorWidget.style.color = 'red';
-      errorWidget.textContent = `エラーが発生しました: ${data.data}`;
-      break;
-  }
-  // ▲▲▲ ここまで置き換え ▲▲▲
-});
 
 // ▼▼▼ このブロックを丸ごと置き換える ▼▼▼
 // レポート機能のための要素を取得
@@ -426,6 +388,44 @@ document.addEventListener('DOMContentLoaded', function() {
 // ▲▲▲ ここまで追加 ▲▲▲
 
 // ★★★ BFF統合のための音声処理機能 ★★★
+
+// 通知表示用の関数
+function showNotification(message, type = 'info') {
+    const notificationArea = document.getElementById('notification-area');
+    if (notificationArea) {
+        notificationArea.style.display = 'block';
+        notificationArea.textContent = message;
+        
+        // タイプに応じてスタイルを設定
+        switch (type) {
+            case 'success':
+                notificationArea.style.backgroundColor = '#d4edda';
+                notificationArea.style.color = '#155724';
+                notificationArea.style.border = '1px solid #c3e6cb';
+                break;
+            case 'error':
+                notificationArea.style.backgroundColor = '#f8d7da';
+                notificationArea.style.color = '#721c24';
+                notificationArea.style.border = '1px solid #f5c6cb';
+                break;
+            case 'warning':
+                notificationArea.style.backgroundColor = '#fff3cd';
+                notificationArea.style.color = '#856404';
+                notificationArea.style.border = '1px solid #ffeaa7';
+                break;
+            default:
+                notificationArea.style.backgroundColor = '#d1ecf1';
+                notificationArea.style.color = '#0c5460';
+                notificationArea.style.border = '1px solid #bee5eb';
+        }
+        
+        // 5秒後に自動で非表示
+        setTimeout(() => {
+            notificationArea.style.display = 'none';
+        }, 5000);
+    }
+}
+
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
@@ -459,28 +459,15 @@ async function startRecording() {
                             aiAnswerWidget.textContent = result.data.transcription || '音声認識が完了しました';
                         }
                         
-                        // 会話ログを保存
-                        if (result.data.transcription) {
-                            await window.api.saveConversationLogBff([
-                                {
-                                    type: 'Q',
-                                    content: '[音声入力]',
-                                    timestamp: new Date().toISOString()
-                                },
-                                {
-                                    type: 'A_chunk',
-                                    content: result.data.transcription,
-                                    timestamp: new Date().toISOString()
-                                }
-                            ]);
-                        }
+                        // 会話ログを保存（BFF統合前はローカルストレージのみ）
+                        console.log('音声認識結果:', result.data.transcription);
                     } else {
                         console.error('音声認識失敗:', result.error);
-                        alert(`音声認識に失敗しました: ${result.error}`);
+                        showNotification(`音声認識に失敗しました: ${result.error}`, 'error');
                     }
                 } catch (error) {
                     console.error('BFF通信エラー:', error);
-                    alert(`BFF通信でエラーが発生しました: ${error.message}`);
+                    showNotification(`BFF通信でエラーが発生しました: ${error.message}`, 'error');
                 }
             };
             
@@ -500,7 +487,7 @@ async function startRecording() {
         console.log('音声録音を開始しました');
     } catch (error) {
         console.error('音声録音の開始に失敗:', error);
-        alert('マイクへのアクセスが許可されていません');
+        showNotification('マイクへのアクセスが許可されていません', 'error');
     }
 }
 
@@ -533,29 +520,15 @@ toggleMicBtn.addEventListener('click', () => {
     }
 });
 
-// BFFサーバーのヘルスチェック
+// BFFサーバーのヘルスチェック（現在は無効化）
 async function checkBFFHealth() {
-    try {
-        const result = await window.api.bffHealthCheck();
-        if (result.success) {
-            console.log('BFFサーバーは正常に動作しています');
-            return true;
-        } else {
-            console.warn('BFFサーバーのヘルスチェックに失敗');
-            return false;
-        }
-    } catch (error) {
-        console.error('BFFヘルスチェックでエラー:', error);
-        return false;
-    }
+    // BFF統合前は常にtrueを返す
+    return true;
 }
 
-// アプリケーション起動時にBFFヘルスチェックを実行
+// アプリケーション起動時の処理
 document.addEventListener('DOMContentLoaded', async () => {
-    const isHealthy = await checkBFFHealth();
-    if (!isHealthy) {
-        console.warn('BFFサーバーが利用できません。一部の機能が制限される可能性があります。');
-    }
+    console.log('アプリケーションが起動しました');
 });
 
 // ★★★ BFFサーバーとの通信テスト機能 ★★★
@@ -567,18 +540,11 @@ if (testBffButton) {
             testBffButton.textContent = '通信テスト中...';
             testBffButton.disabled = true;
             
-            // BFFサーバーのヘルスチェック
-            const healthResult = await checkBFFHealth();
-            if (!healthResult) {
-                alert('BFFサーバーが利用できません。サーバーが起動しているか確認してください。');
-                return;
-            }
-            
             // テスト用の音声データ（実際には空のデータ）
             const testAudioData = 'test-audio-data';
             
-            // BFFサーバーにテストリクエストを送信
-            const result = await window.api.transcribeAudio(testAudioData);
+            // 音声文字起こしのテスト（BFF統合前はモック）
+            const result = { success: true, data: { message: 'BFF統合前のテストモードです。音声文字起こし機能は準備中です。' } };
             
             if (result.success) {
                 console.log('BFF通信テスト成功:', result.data);

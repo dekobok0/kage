@@ -5,9 +5,9 @@ const axios = require('axios');
 const log = require('electron-log');
 
 class BFFService {
-  constructor() {
+  constructor(baseURL = 'http://localhost:8080') {
     // BFFサーバーのベースURL
-    this.baseURL = 'http://localhost:8080';
+    this.baseURL = baseURL;
     
     // axiosインスタンスの設定
     this.client = axios.create({
@@ -52,18 +52,10 @@ class BFFService {
       });
 
       log.info('[BFF] Transcription completed successfully');
-      return {
-        success: true,
-        data: response.data,
-        timestamp: new Date().toISOString()
-      };
+      return response.data;
     } catch (error) {
       log.error('[BFF] Transcription failed:', error.message);
-      return {
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      };
+      throw new Error(`音声文字起こしに失敗しました: ${error.message}`);
     }
   }
 
@@ -78,7 +70,7 @@ class BFFService {
       return true;
     } catch (error) {
       log.warn('[BFF] Health check failed:', error.message);
-      return false;
+      throw new Error(`BFFサーバーのヘルスチェックに失敗しました: ${error.message}`);
     }
   }
 
@@ -97,18 +89,10 @@ class BFFService {
       });
 
       log.info('[BFF] Profile saved successfully');
-      return {
-        success: true,
-        data: response.data,
-        timestamp: new Date().toISOString()
-      };
+      return response.data;
     } catch (error) {
       log.error('[BFF] Profile save failed:', error.message);
-      return {
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      };
+      throw new Error(`プロフィールの保存に失敗しました: ${error.message}`);
     }
   }
 
@@ -127,18 +111,10 @@ class BFFService {
       });
 
       log.info('[BFF] Conversation log saved successfully');
-      return {
-        success: true,
-        data: response.data,
-        timestamp: new Date().toISOString()
-      };
+      return response.data;
     } catch (error) {
       log.error('[BFF] Conversation log save failed:', error.message);
-      return {
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      };
+      throw new Error(`会話ログの保存に失敗しました: ${error.message}`);
     }
   }
 
@@ -157,18 +133,10 @@ class BFFService {
       });
 
       log.info('[BFF] Report generated successfully');
-      return {
-        success: true,
-        data: response.data,
-        timestamp: new Date().toISOString()
-      };
+      return response.data;
     } catch (error) {
       log.error('[BFF] Report generation failed:', error.message);
-      return {
-        success: false,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      };
+      throw new Error(`レポート生成に失敗しました: ${error.message}`);
     }
   }
 }
