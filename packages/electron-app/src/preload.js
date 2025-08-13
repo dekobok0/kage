@@ -7,9 +7,7 @@ contextBridge.exposeInMainWorld('api', {
   transcribeAudio: (audioData) => ipcRenderer.invoke('transcribe-audio', audioData),
   
   // プロフィール管理
-  saveProfile: (profileData) => {
-    ipcRenderer.send('save-profile', profileData);
-  },
+  saveProfile: (profileData) => ipcRenderer.invoke('save-profile', profileData),
   
   onProfileLoaded: (callback) => {
     ipcRenderer.once('profile-loaded', (event, profileData) => callback(profileData));
@@ -30,4 +28,8 @@ contextBridge.exposeInMainWorld('api', {
   // 決済関連
   createCheckoutSession: () => ipcRenderer.invoke('create-checkout-session'),
   openExternalUrl: (url) => ipcRenderer.send('open-external-url', url),
+  
+  // ▼▼▼【お掃除用API】この一行を追加 ▼▼▼
+  clearStore: () => ipcRenderer.invoke('clear-store-dangerously'),
+  // ▲▲▲【お掃除用API】ここまで ▲▲▲
 });

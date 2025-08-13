@@ -14,6 +14,7 @@ const path = require('node:path');
 const Store = require('electron-store').default;
 const log = require('electron-log');
 const fs = require('fs');
+const puppeteer = require('puppeteer-core');
 
 // BFF統合のための新しいモジュール
 const IPCHandlers = require('./main/ipcHandlers');
@@ -137,14 +138,24 @@ const createWindow = () => {
           const decryptedProfile = {};
           for (const key in encryptedProfile) {
               const originalKey = key.replace('encrypted_', '');
-              let decryptedValue = safeStorage.decryptString(Buffer.from(encryptedProfile[key], 'base64'));
-              // JSON文字列だったもの（配列など）を元に戻す
+              const decryptedString = safeStorage.decryptString(Buffer.from(encryptedProfile[key], 'base64'));
+              
               try {
-                  decryptedValue = JSON.parse(decryptedValue);
+                  const wrapper = JSON.parse(decryptedString);
+                  if (wrapper.type === 'json') {
+                      decryptedProfile[originalKey] = JSON.parse(wrapper.value);
+                  } else {
+                      decryptedProfile[originalKey] = wrapper.value;
+                  }
               } catch (e) {
-                  // Not a JSON string, do nothing
+                  log.warn(`Failed to parse decrypted value for key ${originalKey}:`, e);
+                  // フォールバック: 古い形式のデータの場合
+                  try {
+                      decryptedProfile[originalKey] = JSON.parse(decryptedString);
+                  } catch (e2) {
+                      decryptedProfile[originalKey] = decryptedString;
+                  }
               }
-              decryptedProfile[originalKey] = decryptedValue;
           }
           log.info('Successfully loaded and decrypted profile for UI.');
           mainWindow.webContents.send('profile-loaded', decryptedProfile);
@@ -159,27 +170,50 @@ const createWindow = () => {
 };
 
 // ▼▼▼ 修正箇所：プロフィール保存処理 ▼▼▼
-ipcMain.on('save-profile', (event, profileData) => {
+ipcMain.handle('save-profile', async (event, profileData) => {
   if (!safeStorage.isEncryptionAvailable()) {
     log.error('Encryption is not available on this system. Profile not saved.');
-    return;
+    return { success: false, error: '暗号化が利用できません。' };
   }
   try {
     const encryptedProfile = {};
     for (const key in profileData) {
-        // オブジェクトや配列はJSON文字列に変換してから暗号化
-        const valueToEncrypt = typeof profileData[key] === 'object' ? JSON.stringify(profileData[key]) : profileData[key];
-        if (valueToEncrypt) {
-           const encryptedValue = safeStorage.encryptString(valueToEncrypt);
-           encryptedProfile[`encrypted_${key}`] = encryptedValue.toString('base64');
+        const value = profileData[key];
+        let type, valueToEncrypt;
+
+        if (typeof value === 'object' && value !== null) {
+            type = 'json';
+            valueToEncrypt = JSON.stringify(value);
+        } else {
+            type = 'string';
+            valueToEncrypt = String(value);
         }
+        
+        // 型情報を持つオブジェクトで包んでから暗号化
+        const wrapper = { type, value: valueToEncrypt };
+        const encryptedValue = safeStorage.encryptString(JSON.stringify(wrapper));
+        encryptedProfile[`encrypted_${key}`] = encryptedValue.toString('base64');
     }
     store.set('userProfile', encryptedProfile);
     log.info('Successfully encrypted and saved profile.');
+    return { success: true };
   } catch (error) {
     log.error('Failed to encrypt and save profile:', error);
+    return { success: false, error: error.message };
   }
 });
+
+// ▼▼▼【お掃除用コード】ここから ▼▼▼
+ipcMain.handle('clear-store-dangerously', () => {
+  try {
+    store.clear();
+    log.info('全データを削除しました。');
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+// ▲▲▲【お掃除用コード】ここまで ▲▲▲
 
 // ▼▼▼ 面接モード時のウィンドウサイズ調整 ▼▼▼
 ipcMain.on('switch-to-interview-mode', () => {
@@ -220,9 +254,24 @@ ipcMain.handle('generate-report', async (event) => {
         if (encryptedProfile && Object.keys(encryptedProfile).length > 0 && safeStorage.isEncryptionAvailable()) {
           for (const key in encryptedProfile) {
               const originalKey = key.replace('encrypted_', '');
-              let decryptedValue = safeStorage.decryptString(Buffer.from(encryptedProfile[key], 'base64'));
-              try { decryptedValue = JSON.parse(decryptedValue); } catch (e) { /* Not JSON */ }
-              decryptedProfile[originalKey] = decryptedValue;
+              const decryptedString = safeStorage.decryptString(Buffer.from(encryptedProfile[key], 'base64'));
+              
+              try {
+                  const wrapper = JSON.parse(decryptedString);
+                  if (wrapper.type === 'json') {
+                      decryptedProfile[originalKey] = JSON.parse(wrapper.value);
+                  } else {
+                      decryptedProfile[originalKey] = wrapper.value;
+                  }
+              } catch (e) {
+                  log.warn(`Failed to parse decrypted value for key ${originalKey}:`, e);
+                  // フォールバック: 古い形式のデータの場合
+                  try {
+                      decryptedProfile[originalKey] = JSON.parse(decryptedString);
+                  } catch (e2) {
+                      decryptedProfile[originalKey] = decryptedString;
+                  }
+              }
           }
         } else {
           // プロフィールがない場合でもレポートは生成を試みる
@@ -246,33 +295,33 @@ ipcMain.handle('generate-report', async (event) => {
       profile: decryptedProfile
     });
 
-    // 4. 一時的なHTMLファイルを作成してPDF生成
-    const tempHtmlPath = path.join(app.getPath('temp'), `kage-report-${Date.now()}.html`);
-    fs.writeFileSync(tempHtmlPath, htmlContent, 'utf8');
-    
-    // 一時的なBrowserWindowを作成してHTMLをロード
-    const tempWindow = new BrowserWindow({
-      show: false,
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true
-      }
+    // 4. puppeteer-coreを使った安全なPDF生成
+    const browser = await puppeteer.launch({
+      executablePath: app.getPath('exe'), // ★より確実なこちらの方法に修正
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] // この行も念のため確認
     });
     
-    await tempWindow.loadFile(tempHtmlPath);
-    
-    // PDFを生成
-    const pdfBytes = await tempWindow.webContents.printToPDF({
-      printBackground: true,
-      pageSize: 'A4',
-      margins: {
-        marginType: 'printableArea'
-      }
-    });
-    
-    // 一時的なウィンドウとファイルをクリーンアップ
-    tempWindow.close();
-    fs.unlinkSync(tempHtmlPath);
+    try {
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      
+      const pdfBytes = await page.pdf({ 
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '20mm',
+          bottom: '20mm',
+          left: '20mm'
+        }
+      });
+      
+      await page.close();
+      return pdfBytes;
+    } finally {
+      await browser.close();
+    }
 
     const { filePath } = await dialog.showSaveDialog(mainWindow, { 
         title: 'レポートを保存', 

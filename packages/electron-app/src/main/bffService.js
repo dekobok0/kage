@@ -42,21 +42,16 @@ class BFFService {
    * @returns {Promise<Object>} 文字起こし結果
    */
   async transcribeAudio(audioData) {
-    try {
-      log.info('[BFF] Sending audio data for transcription');
-      
-      const response = await this.client.post('/api/transcribe', {
-        audioContent: audioData,
-        timestamp: new Date().toISOString(),
-        format: 'base64'
-      });
+    log.info('[BFF] Sending audio data for transcription');
+    
+    const response = await this.client.post('/api/transcribe', {
+      audioContent: audioData,
+      timestamp: new Date().toISOString(),
+      format: 'base64'
+    });
 
-      log.info('[BFF] Transcription completed successfully');
-      return response.data;
-    } catch (error) {
-      log.error('[BFF] Transcription failed:', error.message);
-      throw new Error(`音声文字起こしに失敗しました: ${error.message}`);
-    }
+    log.info('[BFF] Transcription completed successfully');
+    return response.data;
   }
 
   /**
@@ -64,14 +59,9 @@ class BFFService {
    * @returns {Promise<boolean>} サーバーが利用可能かどうか
    */
   async healthCheck() {
-    try {
-      const response = await this.client.get('/health');
-      log.info('[BFF] Health check passed');
-      return true;
-    } catch (error) {
-      log.warn('[BFF] Health check failed:', error.message);
-      throw new Error(`BFFサーバーのヘルスチェックに失敗しました: ${error.message}`);
-    }
+    const response = await this.client.get('/health');
+    log.info('[BFF] Health check passed');
+    return true;
   }
 
   /**
@@ -80,20 +70,15 @@ class BFFService {
    * @returns {Promise<Object>} 処理結果
    */
   async saveProfile(profileData) {
-    try {
-      log.info('[BFF] Sending profile data to BFF server');
-      
-      const response = await this.client.post('/api/profile', {
-        profile: profileData,
-        timestamp: new Date().toISOString()
-      });
+    log.info('[BFF] Sending profile data to BFF server');
+    
+    const response = await this.client.post('/api/profile', {
+      profile: profileData,
+      timestamp: new Date().toISOString()
+    });
 
-      log.info('[BFF] Profile saved successfully');
-      return response.data;
-    } catch (error) {
-      log.error('[BFF] Profile save failed:', error.message);
-      throw new Error(`プロフィールの保存に失敗しました: ${error.message}`);
-    }
+    log.info('[BFF] Profile saved successfully');
+    return response.data;
   }
 
   /**
@@ -102,20 +87,15 @@ class BFFService {
    * @returns {Promise<Object>} 処理結果
    */
   async saveConversationLog(conversationLog) {
-    try {
-      log.info('[BFF] Sending conversation log to BFF server');
-      
-      const response = await this.client.post('/api/conversation', {
-        log: conversationLog,
-        timestamp: new Date().toISOString()
-      });
+    log.info('[BFF] Sending conversation log to BFF server');
+    
+    const response = await this.client.post('/api/conversation', {
+      log: conversationLog,
+      timestamp: new Date().toISOString()
+    });
 
-      log.info('[BFF] Conversation log saved successfully');
-      return response.data;
-    } catch (error) {
-      log.error('[BFF] Conversation log save failed:', error.message);
-      throw new Error(`会話ログの保存に失敗しました: ${error.message}`);
-    }
+    log.info('[BFF] Conversation log saved successfully');
+    return response.data;
   }
 
   /**
@@ -124,20 +104,15 @@ class BFFService {
    * @returns {Promise<Object>} レポートデータ
    */
   async generateReport(reportParams) {
-    try {
-      log.info('[BFF] Requesting report generation from BFF server');
-      
-      const response = await this.client.post('/api/report', {
-        params: reportParams,
-        timestamp: new Date().toISOString()
-      });
+    log.info('[BFF] Requesting report generation from BFF server');
+    
+    const response = await this.client.post('/api/report', {
+      params: reportParams,
+      timestamp: new Date().toISOString()
+    });
 
-      log.info('[BFF] Report generated successfully');
-      return response.data;
-    } catch (error) {
-      log.error('[BFF] Report generation failed:', error.message);
-      throw new Error(`レポート生成に失敗しました: ${error.message}`);
-    }
+    log.info('[BFF] Report generated successfully');
+    return response.data;
   }
 }
 

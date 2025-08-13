@@ -221,21 +221,43 @@ const profileData = {
     career_development: getCheckboxValues(careerDevelopmentCheckboxes)
 };
 
-// プロフィール保存を実行
-window.api.saveProfile(profileData);
-
-// 保存完了のフィードバックを表示
-setTimeout(() => {
-    saveButton.innerHTML = '<span class="button-icon">✅</span>保存完了！';
-    saveButton.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
-    
-    // 3秒後に元の状態に戻す
-    setTimeout(() => {
-        saveButton.innerHTML = originalButtonText;
-        saveButton.disabled = false;
-        saveButton.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
-    }, 3000);
-}, 1000);
+// プロフィール保存を実行（結果を待つ）
+(async () => {
+    try {
+        const result = await window.api.saveProfile(profileData);
+        
+        if (result.success) {
+            // 成功時のフィードバック
+            saveButton.innerHTML = '<span class="button-icon">✅</span>保存完了！';
+            saveButton.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+            showNotification('プロフィールが正常に保存されました', 'success');
+        } else {
+            // 失敗時のフィードバック
+            saveButton.innerHTML = '<span class="button-icon">❌</span>保存失敗';
+            saveButton.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+            showNotification(`プロフィールの保存に失敗しました: ${result.error}`, 'error');
+        }
+        
+        // 3秒後に元の状態に戻す
+        setTimeout(() => {
+            saveButton.innerHTML = originalButtonText;
+            saveButton.disabled = false;
+            saveButton.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+        }, 3000);
+    } catch (error) {
+        // エラー時のフィードバック
+        saveButton.innerHTML = '<span class="button-icon">❌</span>保存失敗';
+        saveButton.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+        showNotification(`プロフィールの保存でエラーが発生しました: ${error.message}`, 'error');
+        
+        // 3秒後に元の状態に戻す
+        setTimeout(() => {
+            saveButton.innerHTML = originalButtonText;
+            saveButton.disabled = false;
+            saveButton.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+        }, 3000);
+    }
+})();
 });
 // ▲▲▲ ここまで改善 ▲▲▲
 
@@ -463,7 +485,8 @@ async function startRecording() {
                         console.log('音声認識結果:', result.data.transcription);
                     } else {
                         console.error('音声認識失敗:', result.error);
-                        showNotification(`音声認識に失敗しました: ${result.error}`, 'error');
+                        const errorMessage = result.error?.message || result.error || '不明なエラー';
+                        showNotification(`音声認識に失敗しました: ${errorMessage}`, 'error');
                     }
                 } catch (error) {
                     console.error('BFF通信エラー:', error);
@@ -558,19 +581,20 @@ if (testBffButton) {
                     testStatus.style.border = '1px solid #c3e6cb';
                     testResult.textContent = `成功！サーバー応答: ${JSON.stringify(result.data)}`;
                 }
-            } else {
-                console.error('BFF通信テスト失敗:', result.error);
-                
-                // UIにエラー結果を表示
-                const testStatus = document.getElementById('bff-test-status');
-                const testResult = document.getElementById('bff-test-result');
-                if (testStatus && testResult) {
-                    testStatus.style.display = 'block';
-                    testStatus.style.backgroundColor = '#f8d7da';
-                    testStatus.style.border = '1px solid #f5c6cb';
-                    testResult.textContent = `失敗: ${result.error}`;
+                            } else {
+                    console.error('BFF通信テスト失敗:', result.error);
+                    
+                    // UIにエラー結果を表示
+                    const testStatus = document.getElementById('bff-test-status');
+                    const testResult = document.getElementById('bff-test-result');
+                    if (testStatus && testResult) {
+                        testStatus.style.display = 'block';
+                        testStatus.style.backgroundColor = '#f8d7da';
+                        testStatus.style.border = '1px solid #f5c6cb';
+                        const errorMessage = result.error?.message || result.error || '不明なエラー';
+                        testResult.textContent = `失敗: ${errorMessage}`;
+                    }
                 }
-            }
         } catch (error) {
             console.error('BFF通信テストでエラー:', error);
             

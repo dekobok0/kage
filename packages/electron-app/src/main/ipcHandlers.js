@@ -19,14 +19,8 @@ class IPCHandlers {
     // 音声文字起こしのハンドラー
     this.setupTranscribeHandler();
     
-    // プロフィール保存のハンドラー
-    this.setupProfileHandler();
-    
     // 会話ログ保存のハンドラー
     this.setupConversationHandler();
-    
-    // レポート生成のハンドラー
-    this.setupReportHandler();
     
     // ヘルスチェックのハンドラー
     this.setupHealthCheckHandler();
@@ -45,28 +39,20 @@ class IPCHandlers {
         return { success: true, data: result };
       } catch (error) {
         log.error('[IPC] Transcription handler error:', error);
-        return { success: false, error: error.message };
+        return { 
+          success: false, 
+          error: {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data
+          }
+        };
       }
     });
   }
 
-  /**
-   * プロフィール保存のIPCハンドラー
-   */
-  setupProfileHandler() {
-    ipcMain.handle('save-profile-bff', async (event, profileData) => {
-      log.info('[IPC] Profile save requested via BFF');
-      
-      try {
-        const result = await this.bffService.saveProfile(profileData);
-        log.info('[IPC] Profile saved via BFF successfully');
-        return { success: true, data: result };
-      } catch (error) {
-        log.error('[IPC] Profile handler error:', error);
-        return { success: false, error: error.message };
-      }
-    });
-  }
+
 
   /**
    * 会話ログ保存のIPCハンドラー
@@ -81,28 +67,20 @@ class IPCHandlers {
         return { success: true, data: result };
       } catch (error) {
         log.error('[IPC] Conversation handler error:', error);
-        return { success: false, error: error.message };
+        return { 
+          success: false, 
+          error: {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data
+          }
+        };
       }
     });
   }
 
-  /**
-   * レポート生成のIPCハンドラー
-   */
-  setupReportHandler() {
-    ipcMain.handle('generate-report-bff', async (event, reportParams) => {
-      log.info('[IPC] Report generation requested via BFF');
-      
-      try {
-        const result = await this.bffService.generateReport(reportParams);
-        log.info('[IPC] Report generated via BFF successfully');
-        return { success: true, data: result };
-      } catch (error) {
-        log.error('[IPC] Report handler error:', error);
-        return { success: false, error: error.message };
-      }
-    });
-  }
+
 
   /**
    * ヘルスチェックのIPCハンドラー
@@ -117,7 +95,15 @@ class IPCHandlers {
         return { success: true };
       } catch (error) {
         log.error('[IPC] Health check handler error:', error);
-        return { success: false, error: error.message };
+        return { 
+          success: false, 
+          error: {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data
+          }
+        };
       }
     });
   }
