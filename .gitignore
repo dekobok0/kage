@@ -96,3 +96,5 @@ kage-gcp-key.json
 
 
 archive/
+
+.puppeteer-cache
