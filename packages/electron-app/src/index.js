@@ -111,6 +111,52 @@ function logConversation(userQuery, aiResponse) {
 
 // ReportServiceでStripeを管理するため、ここでの初期化は不要
 
+function getChromiumPath() {
+  const isDev = !app.isPackaged;
+
+  try {
+    const baseDir = isDev
+      ? path.join(app.getAppPath(), '..', '..', '.puppeteer-cache')
+      : path.join(process.resourcesPath, 'puppeteer');
+
+    // ★★★ あなたの指摘を反映した最重要修正点 ★★★
+    // 'chrome'サブディレクトリのパスを正しく作成する
+    const chromeCacheDir = path.join(baseDir, 'chrome');
+    // ★★★ ここまで ★★★
+
+    if (!fs.existsSync(chromeCacheDir)) {
+      throw new Error(`'chrome' subdirectory not found in cache: ${chromeCacheDir}`);
+    }
+
+    // 'chrome'サブディレクトリの中からバージョン名のフォルダを探す
+    const browserDirName = fs.readdirSync(chromeCacheDir).find(dir => dir.startsWith('win64-'));
+    if (!browserDirName) {
+      throw new Error('Browser version directory not found in the chrome cache directory.');
+    }
+
+    // 実行ファイルまでの最終パスを組み立てる
+    const executablePath = path.join(
+      chromeCacheDir,
+      browserDirName,
+      'chrome-win64', // この内部パスは@puppeteer/browsersの仕様
+      'chrome.exe'
+    );
+
+    if (!fs.existsSync(executablePath)) {
+      throw new Error(`Chromium executable not found at: ${executablePath}`);
+    }
+
+    log.info(`Found Chromium executable at: ${executablePath}`);
+    return executablePath;
+
+  } catch (error) {
+    log.error('Failed to get Chromium path:', error);
+    // エラーが発生した場合、詳細をログに記録し、nullを返すことで、
+    // 呼び出し元がエラーを適切に処理できるようにする。
+    return null;
+  }
+}
+
 let mainWindow;
 
 const createWindow = () => {
@@ -149,10 +195,12 @@ const createWindow = () => {
                   }
               } catch (e) {
                   log.warn(`Failed to parse decrypted value for key ${originalKey}:`, e);
+                  log.error(`Parse failed for key ${originalKey}, raw string: ${decryptedString}`);
                   // フォールバック: 古い形式のデータの場合
                   try {
                       decryptedProfile[originalKey] = JSON.parse(decryptedString);
                   } catch (e2) {
+                      log.error(`Fallback parse also failed for key ${originalKey}, raw string: ${decryptedString}`);
                       decryptedProfile[originalKey] = decryptedString;
                   }
               }
@@ -241,6 +289,13 @@ ipcMain.on('switch-to-prep-mode', () => {
 ipcMain.handle('generate-report', async (event) => {
   log.info('Report generation requested.');
 
+  // ▼▼▼ IPCセキュリティの最小限の実装 ▼▼▼
+  const senderUrl = new URL(event.senderFrame.url);
+  if (senderUrl.protocol !== 'file:') {
+    throw new Error('Untrusted sender: IPC call rejected.');
+  }
+  // ▲▲▲ IPCセキュリティここまで ▲▲▲
+
   try {
     // 1. 必要なデータを全てストアから取得
     const startTimeISO = store.get('interviewStartTime');
@@ -265,10 +320,12 @@ ipcMain.handle('generate-report', async (event) => {
                   }
               } catch (e) {
                   log.warn(`Failed to parse decrypted value for key ${originalKey}:`, e);
+                  log.error(`Parse failed for key ${originalKey}, raw string: ${decryptedString}`);
                   // フォールバック: 古い形式のデータの場合
                   try {
                       decryptedProfile[originalKey] = JSON.parse(decryptedString);
                   } catch (e2) {
+                      log.error(`Fallback parse also failed for key ${originalKey}, raw string: ${decryptedString}`);
                       decryptedProfile[originalKey] = decryptedString;
                   }
               }
@@ -295,12 +352,20 @@ ipcMain.handle('generate-report', async (event) => {
       profile: decryptedProfile
     });
 
-    // 4. puppeteer-coreを使った安全なPDF生成
-    const browser = await puppeteer.launch({
-      executablePath: app.getPath('exe'), // ★より確実なこちらの方法に修正
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] // この行も念のため確認
-    });
+    // 4. 動的パス解決ロジックを使用した安全なPDF生成
+    const chromiumPath = getChromiumPath();
+    const launchOptions = {
+      headless: shell,
+    };
+
+    if (chromiumPath && fs.existsSync(chromiumPath)) {
+      launchOptions.executablePath = chromiumPath;
+      log.info(`Using bundled Chromium: ${chromiumPath}`);
+    } else {
+      log.warn('Bundled Chromium not found, using system default');
+    }
+
+    const browser = await puppeteer.launch(launchOptions);
     
     try {
       const page = await browser.newPage();
@@ -318,21 +383,23 @@ ipcMain.handle('generate-report', async (event) => {
       });
       
       await page.close();
-      return pdfBytes;
+      
+      // 5. ファイル保存ダイアログを表示
+      const { filePath } = await dialog.showSaveDialog(mainWindow, { 
+          title: 'レポートを保存', 
+          defaultPath: `Kage合理的配慮レポート_${new Date().toISOString().slice(0,10)}.pdf` 
+      });
+
+      if (filePath) {
+        fs.writeFileSync(filePath, pdfBytes);
+        return { success: true, message: `レポートが保存されました。` };
+      } else {
+        return { success: false, message: '保存がキャンセルされました。' };
+      }
     } finally {
-      await browser.close();
-    }
-
-    const { filePath } = await dialog.showSaveDialog(mainWindow, { 
-        title: 'レポートを保存', 
-        defaultPath: `Kage合理的配慮レポート_${new Date().toISOString().slice(0,10)}.pdf` 
-    });
-
-    if (filePath) {
-      fs.writeFileSync(filePath, pdfBytes);
-      return { success: true, message: `レポートが保存されました。` };
-    } else {
-      return { success: false, message: '保存がキャンセルされました。' };
+      if (browser !== null) {
+        await browser.close();
+      }
     }
   } catch (error) {
     log.error('PDF generation failed:', error);

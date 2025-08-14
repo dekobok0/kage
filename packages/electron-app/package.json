@@ -11,6 +11,7 @@
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
+
   "keywords": [],
   "author": {
     "name": "{kantasuzuki}",
@@ -39,5 +40,13 @@
     "@electron/fuses": "^1.8.0",
     "electron": "31.2.1",
     "fs-extra": "^11.3.1"
+  },
+  "build": {
+    "extraResources": [
+      {
+        "from": "../../.puppeteer-cache",
+        "to": "puppeteer"
+      }
+    ]
   }
 }
