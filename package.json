@@ -6,9 +6,8 @@
         "packages/*"
     ],
     "scripts": {
-        "dev": "concurrently \"npm:dev --workspace=packages/bff-server\" \"npm:start --workspace=packages/electron-app\"",
-        "postinstall": "node ./scripts/postinstall.js && npx puppeteer browsers install chrome",
-        "make": "npm run make --workspace=packages/electron-app" 
+        "dev": "concurrently \"pnpm --filter bff-server dev\" \"pnpm --filter kage start\"",
+        "make": "pnpm --filter kage make"
     },
     "devDependencies": {
         "@puppeteer/browsers": "^2.10.6",
@@ -17,5 +16,11 @@
     },
     "dependencies": {
         "electron-is-dev": "^3.0.1"
-    }
+    },
+   "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "electron-winstaller"
+    ]
+  }
 }

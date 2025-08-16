@@ -98,3 +98,7 @@ kage-gcp-key.json
 archive/
 
 .puppeteer-cache
+
+
+# specstoryの自動生成ファイルは無視する
+.specstory/
