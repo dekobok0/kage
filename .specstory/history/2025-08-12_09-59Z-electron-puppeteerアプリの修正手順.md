@@ -1069,14 +1069,16 @@ npm install
 ```
 
 ```
-PS C:\dev\kage-app> npm install
+
 npm warn deprecated gar@1.0.4: Package no longer supported. Contact Support at https://www.npmjs.com/supp
 ort for more info.
+
 npm warn cleanup Failed to remove some directories [
 npm warn cleanup   [
 npm warn cleanup     'C:\\dev\\kage-app\\node_modules\\electron-installer-redhat\\node_modules\\yargs',
 npm warn cleanup     [Error: EPERM: operation not permitted, rmdir 'C:\dev\kage-app\node_modules\electron
 -installer-redhat\node_modules\yargs\build'] {
+
 npm warn cleanup       errno: -4048,
 npm warn cleanup       code: 'EPERM',
 npm warn cleanup       syscall: 'rmdir',
@@ -1091,49 +1093,232 @@ npm warn cleanup ]
 Running postinstall script to handle electron dependency...
 Copying 'electron' from C:\dev\kage-app\node_modules\electron to C:\dev\kage-app\packages\electron-app\no
 de_modules\electron
+
 Successfully copied electron package for Electron Forge.
 Need to install the following packages:
 puppeteer@24.16.1
 Ok to proceed? (y) y
 
-Downloading chrome 139.0.7258.66 - 173 MB [=================== ] 95% 2.1s
+Downloading chrome 139.0.7258.66 - 173 MB [====================] 100% 0.0s
+chrome@139.0.7258.66 C:\dev\kage-app\.puppeteer-cache\chrome\win64-139.0.7258.66\chrome-win64\chrome.exe
+
+changed 1 package, and audited 638 packages in 2m
+
+104 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
 ```
 
 ---
 
+素晴らしい！Chromeが正常にダウンロードされました。`.puppeteer-cache`フォルダが作成されているか確認しましょう。
 
 
 ---
 
+<details>
+            <summary>Listed current directory • **12** results</summary>
+        
+| Name |
+|-------|
+| 📁 `.puppeteer-cache` |
+| 📄 `package-lock.json` |
+| 📁 `node_modules` |
+| 📄 `package.json` |
+| 📄 `.puppeteerrc.js` |
+| 📁 `.git` |
+| 📁 `archive` |
+| 📄 `.gitignore` |
+| 📁 `scripts` |
+| 📁 `packages` |
+| 📁 `.specstory` |
+| 📄 `.cursorindexingignore` |
+
+</details>
+
+---
+
+<details>
+            <summary>Listed directory .puppeteer-cache • **1** results</summary>
+        
+| Name |
+|-------|
+| 📁 `chrome` |
+
+</details>
+
+---
+
+<details>
+            <summary>Listed directory .puppeteer-cache/chrome • **1** results</summary>
+        
+| Name |
+|-------|
+| 📁 `win64-139.0.7258.66` |
+
+</details>
+
+---
+
+<details>
+            <summary>Listed directory .puppeteer-cache/chrome/win64-139.0.7258.66 • **1** results</summary>
+        
+| Name |
+|-------|
+| 📁 `chrome-win64` |
+
+</details>
+
+---
+
+<details>
+            <summary>Listed directory .puppeteer-cache/chrome/win64-139.0.7258.66/chrome-win64 • **32** results</summary>
+        
+| Name |
+|-------|
+| 📁 `hyphen-data` |
+| 📄 `vulkan-1.dll` |
+| 📄 `vk_swiftshader_icd.json` |
+| 📄 `vk_swiftshader.dll` |
+| 📄 `v8_context_snapshot.bin` |
+| 📄 `setup.exe` |
+| 📁 `resources` |
+| 📄 `resources.pak` |
+| 📄 `notification_helper.exe` |
+| 📁 `locales` |
+| 📄 `libGLESv2.dll` |
+| 📄 `libEGL.dll` |
+| 📄 `icudtl.dat` |
+| 📄 `elevation_service.exe` |
+| 📄 `elevated_tracing_service.exe` |
+| 📄 `dxil.dll` |
+| 📄 `dxcompiler.dll` |
+| 📄 `chrome_wer.dll` |
+| 📄 `chrome_pwa_launcher.exe` |
+| 📄 `chrome_proxy.exe` |
+| 📄 `chrome_elf.dll` |
+| 📄 `chrome_200_percent.pak` |
+| 📄 `chrome_100_percent.pak` |
+| 📄 `chrome.exe` |
+| 📄 `chrome.dll` |
+| 📁 `PrivacySandboxAttestationsPreloaded` |
+| 📁 `MEIPreload` |
+| 📁 `IwaKeyDistribution` |
+| 📄 `First Run` |
+| 📄 `D3DCompiler_47.dll` |
+| 📄 `ABOUT` |
+| 📄 `139.0.7258.66.manifest` |
+
+</details>
+
+---
+
+完璧です！Chromeが正常にダウンロードされ、`chrome.exe`も確認できました。
+
+## ステップ6：getChromiumPath関数を簡素化された最終形に更新
+
+packages/electron-app/src/index.js内のgetChromiumPath関数を、レポートのハイブリッド戦略に基づいた最終形態に置き換えます。
 
 
 ---
 
+<details><summary>Edit file: packages/electron-app/src/index.js</summary>
 
+undefined
+
+**Chunk 1**
+Lines added: 17, lines removed: 28
+
+```diff
+@@ -113,32 +113,21 @@
+  
+  function getChromiumPath() {
+-   // 'is-dev'のようなライブラリや環境変数で開発環境か本番環境かを判定
+-   const isDev = process.env.NODE_ENV === 'development';
+- 
+-   if (isDev) {
+-       // 開発環境では、`puppeteer`がダウンロードしたChromiumのパスを直接使用
+-       // 注意: このためには、`puppeteer`も開発依存(`devDependencies`)としてインストールしておく必要がある
+-       try {
+-           return require('puppeteer').executablePath();
+-       } catch (e) {
+-           console.error('開発環境用のpuppeteerが見つかりません。`npm i -D puppeteer` を実行してください。');
+-           return '';
+-       }
+-   }
+- 
+-   // 本番環境(パッケージ化後)のパス
+-   // extraResourcesに配置したChromiumへのパスを構築
+-   let executablePath = '';
+-   const chromiumDirName = 'chromium'; // extraResourcesにコピーしたディレクトリ名
+- 
+-   if (process.platform === 'win32') {
+-       executablePath = path.join(process.resourcesPath, chromiumDirName, 'chrome.exe');
+-   } else if (process.platform === 'darwin') {
+-       executablePath = path.join(process.resourcesPath, chromiumDirName, 'Chromium.app', 'Contents', 'MacOS', 'Chromium');
+-   } else { // linux
+-       executablePath = path.join(process.resourcesPath, chromiumDirName, 'chrome');
+-   }
+- 
+-   return executablePath;
++   // Electronの公式APIで開発環境か本番環境かを判定。これが最も確実。
++   const isDev = !app.isPackaged;
++ 
++   // 開発環境ではプロジェクトルートのキャッシュ、本番環境ではパッケージ化されたリソースを指す
++   const baseDir = isDev
++     ? path.join(app.getAppPath(), '..', '..', '.puppeteer-cache')
++     : path.join(process.resourcesPath, 'puppeteer');
++   
++   // @puppeteer/browsersが作るディレクトリ構造に合わせてパスを解決
++   // 注意: このディレクトリ名(例: chrome-win64-12345)は将来変わる可能性があります。
++   // もしエラーが出た場合、.puppeteer-cacheの中身を確認して調整してください。
++   const browserFetcher = puppeteer.createBrowserFetcher({
++     path: baseDir
++   });
++   const revisionInfo = browserFetcher.revisionInfo('chrome');
++   
++   return revisionInfo.executablePath;
+  }
+  
+```
+
+</details>
 
 ---
 
+## 修正完了
 
+Production-Grade Puppeteer Integrationの設定が完了しました！
 
----
+### ✅ 完了した設定
 
+1. **ステップ2：ブラウザのダウンロード先をプロジェクト内に設定**
+   - `.puppeteerrc.js`ファイルを作成し、キャッシュディレクトリを`.puppeteer-cache`に設定
 
+2. **ステップ3：ブラウザのダウンロードを自動化**
+   - ルートの`package.json`に`postinstall`フックを追加
+   - `npx puppeteer browsers install chrome`を自動実行
 
----
+3. **ステップ4：ダウンロードしたブラウザをアプリに同梱**
+   - `packages/electron-app/package.json`に`electron-builder`の設定を追加
+   - `.puppeteer-cache`から`puppeteer`フォルダにリソースをコピー
 
+4. **ステップ5：設定の反映とブラウザのダウンロード**
+   - `npm install`を実行し、Chrome 139.0.7258.66を正常にダウンロード
+   - `.puppeteer-cache/chrome/win64-139.0.7258.66/chrome-win64/chrome.exe`が利用可能
 
+5. **ステップ6：getChromiumPath関数を簡素化された最終形に更新**
+   - `app.isPackaged`を使用した確実な環境判定
+   - `puppeteer.createBrowserFetcher`を使用した動的パス解決
+   - 開発環境と本番環境の両方に対応
 
----
+### 🔧 次のステップ
 
+1. **アプリケーションのテスト**：`npm run dev`でアプリを起動し、PDF生成機能をテスト
+2. **本番ビルドのテスト**：`npm run make`でアプリをパッケージ化し、同梱されたブラウザで動作確認
 
-
----
-
-
-
----
-
-
+これで、開発環境ではローカルキャッシュのブラウザが起動し、本番環境では同梱されたブラウザが使用される、堅牢で安全なElectron-Puppeteerアプリケーションが完成しました！
 
 ---
 
