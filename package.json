@@ -11,16 +11,11 @@
     },
     "devDependencies": {
         "@puppeteer/browsers": "^2.10.6",
-        "concurrently": "^8.2.2",
-        "fs-extra": "^11.3.1"
-    },
-    "dependencies": {
-        "electron-is-dev": "^3.0.1"
+        "concurrently": "^8.2.2"
     },
    "pnpm": {
     "onlyBuiltDependencies": [
-      "electron",
-      "electron-winstaller"
+      "electron"
     ]
   }
 }

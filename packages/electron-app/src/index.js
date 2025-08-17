@@ -21,17 +21,12 @@ const IPCHandlers = require('./main/ipcHandlers');
 const ReportService = require('./main/reportService');
 
 
-// ▼▼▼ 修正点：Squirrelのセットアップイベントを早期に処理し、app.exit()を使用 ▼▼▼
-// この処理は、appオブジェクトが定義された後でなければならない
-if (require('electron-squirrel-startup')) {
-  app.exit(); // quit()よりもexit()の方が即時終了するため安全
-}
-
-
+// Squirrelのセットアップイベント処理は削除済み
 
 
 // --- .env ファイルの読み込み ---
-const appRootPath = app.getAppPath();
+// 開発環境では packages/electron-app/ から、本番環境では適切なパスから.envファイルを読み込む
+const appRootPath = app.isPackaged ? app.getAppPath() : path.join(__dirname, '..');
 const dotEnvPath = path.join(appRootPath, '.env');
 
 log.info(`.envファイルの読み込みを試行します。パス: ${dotEnvPath}`);
@@ -116,22 +111,17 @@ function getChromiumPath() {
 
   try {
     const baseDir = isDev
-      ? path.join(app.getAppPath(), '..', '..', '.puppeteer-cache')
-      : path.join(process.resourcesPath, 'puppeteer');
+  ? path.join(__dirname, '..', '..', '..', '.puppeteer-cache')
+  : path.join(process.resourcesPath, 'puppeteer');
 
-    // ★★★ あなたの指摘を反映した最重要修正点 ★★★
     // 'chrome'サブディレクトリのパスを正しく作成する
     const chromeCacheDir = path.join(baseDir, 'chrome');
-    // ★★★ ここまで ★★★
-
-    if (!fs.existsSync(chromeCacheDir)) {
-      throw new Error(`'chrome' subdirectory not found in cache: ${chromeCacheDir}`);
-    }
 
     // 'chrome'サブディレクトリの中からバージョン名のフォルダを探す
     const browserDirName = fs.readdirSync(chromeCacheDir).find(dir => dir.startsWith('win64-'));
     if (!browserDirName) {
-      throw new Error('Browser version directory not found in the chrome cache directory.');
+      log.warn('Browser version directory not found in the chrome cache directory.');
+      return null;
     }
 
     // 実行ファイルまでの最終パスを組み立てる
@@ -143,7 +133,8 @@ function getChromiumPath() {
     );
 
     if (!fs.existsSync(executablePath)) {
-      throw new Error(`Chromium executable not found at: ${executablePath}`);
+      log.warn(`Chromium executable not found at: ${executablePath}`);
+      return null;
     }
 
     log.info(`Found Chromium executable at: ${executablePath}`);
@@ -355,7 +346,7 @@ ipcMain.handle('generate-report', async (event) => {
     // 4. 動的パス解決ロジックを使用した安全なPDF生成
     const chromiumPath = getChromiumPath();
     const launchOptions = {
-      headless: shell,
+      headless: true,  // ヘッドレスモードで実行
     };
 
     if (chromiumPath && fs.existsSync(chromiumPath)) {
@@ -363,6 +354,8 @@ ipcMain.handle('generate-report', async (event) => {
       log.info(`Using bundled Chromium: ${chromiumPath}`);
     } else {
       log.warn('Bundled Chromium not found, using system default');
+      // システムのChromeを使用する場合の設定
+      launchOptions.channel = 'chrome';  // システムのChromeを使用
     }
 
     const browser = await puppeteer.launch(launchOptions);

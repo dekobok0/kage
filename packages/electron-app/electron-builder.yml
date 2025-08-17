@@ -1,6 +1,12 @@
 appId: "com.kage.app"
 productName: "Kage"
-copyright: "Copyright © 2025 Your Name"
+copyright: "Copyright © 2025 dekoboko"
+
+
+# files設定と並列になるように追記
+extraResources:
+  - from: "../../.puppeteer-cache"
+    to: "puppeteer"
 
 # パッケージに含めるファイルを指定
 # pnpmワークスペースでは、ルートからの相対パスで依存関係を正しく含めることが重要

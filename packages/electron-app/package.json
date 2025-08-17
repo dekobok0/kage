@@ -3,45 +3,34 @@
   "productName": "kage",
   "version": "1.1.0",
   "description": "My Electron application description",
-  "main": "src/index.js",
+  "main": "dist/main/index.js",
   "scripts": {
-  "start": "electron .",
-  "build": "electron-builder",
-  "build:win": "electron-builder --win",
-  "build:mac": "electron-builder --mac",
-  "build:linux": "electron-builder --linux"
-},
+    "start": "electron src/index.js",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
   "keywords": [],
   "author": {
-    "name": "{kantasuzuki}",
-    "email": "{lentz4827@gmail.com}"
+    "name": "kantasuzuki",
+    "email": "lentz4827@gmail.com"
   },
   "license": "MIT",
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
     "axios": "^1.7.2",
     "dotenv": "^17.2.0",
+    "electron-is-dev": "^3.0.1",
     "electron-log": "^5.4.1",
-    "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^7.0.3",
     "pdf-lib": "^1.17.1",
     "puppeteer-core": "^24.16.1",
     "stripe": "^18.3.0"
   },
   "devDependencies": {
-    "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
-    "@electron-forge/plugin-fuses": "^7.8.1",
-    "@electron/fuses": "^1.8.0",
     "electron": "31.2.1",
     "electron-builder": "^26.0.12",
     "fs-extra": "^11.3.1"
-  },
-  "build": {
-    "extraResources": [
-      {
-        "from": "../../.puppeteer-cache",
-        "to": "puppeteer"
-      }
-    ]
   }
 }
