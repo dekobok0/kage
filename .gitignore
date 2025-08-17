@@ -102,3 +102,6 @@ archive/
 
 # specstoryの自動生成ファイルは無視する
 .specstory/
+
+# Electron-Vite build output
+/packages/electron-app/dist

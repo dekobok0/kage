@@ -6,10 +6,12 @@
   "main": "dist/main/index.js",
   "scripts": {
     "start": "electron src/index.js",
+    "build:vite": "electron-vite build",
+    "prebuild": "pnpm run build:vite",
     "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux"
+    "build:win": "pnpm run build --win",
+    "build:mac": "pnpm run build --mac",
+    "build:linux": "pnpm run build --linux"
   },
   "keywords": [],
   "author": {
@@ -21,7 +23,6 @@
     "@pdf-lib/fontkit": "^1.1.1",
     "axios": "^1.7.2",
     "dotenv": "^17.2.0",
-    "electron-is-dev": "^3.0.1",
     "electron-log": "^5.4.1",
     "electron-store": "^7.0.3",
     "pdf-lib": "^1.17.1",
@@ -31,6 +32,8 @@
   "devDependencies": {
     "electron": "31.2.1",
     "electron-builder": "^26.0.12",
-    "fs-extra": "^11.3.1"
+    "electron-vite": "^4.0.0",
+    "fs-extra": "^11.3.1",
+    "vite": "^7.1.2"
   }
 }

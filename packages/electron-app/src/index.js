@@ -151,23 +151,43 @@ function getChromiumPath() {
 let mainWindow;
 
 const createWindow = () => {
+  // --- パス問題を解決するための修正 ---
+
+  // 1. プリロードスクリプトのパスを、開発用と本番用で切り替える
+  const preloadPath = app.isPackaged
+    ? path.join(__dirname, '../preload/index.js') // 本番用(配布用)のパス
+    : path.join(__dirname, 'preload.js');        // 開発用のパス
+
+  // 2. 表示するHTMLファイルのパスも、同様に切り替える
+  const indexPath = app.isPackaged
+    ? path.join(__dirname, '../renderer/index.html') // 本番用(配布用)のパス
+    : path.join(__dirname, 'index.html');           // 開発用のパス
+
+  // --- ここまでが修正箇所 ---
+
+
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: preloadPath, // 上で決定したパスを使う
     },
   });
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
-  mainWindow.webContents.openDevTools();
 
-  // 面接セッションのログを初期化
+  mainWindow.loadFile(indexPath); // 上で決定したパスを使う
+
+  // 開発時のみデベロッパーツールを開くように修正
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
+  }
+
+  // 面接セッションのログを初期化 (ここは元のまま)
   store.set('interviewStartTime', new Date().toISOString());
   store.set('hintCount', 0);
   store.set('conversationLog', []);
   log.info('New interview session initialized.');
 
-  // ▼▼▼ 修正箇所：起動時のプロフィール読み込み処理 ▼▼▼
+  // プロフィール読み込み処理 (ここは元のまま)
   mainWindow.webContents.on('did-finish-load', () => {
     try {
       const encryptedProfile = store.get('userProfile');
