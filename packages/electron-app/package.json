@@ -27,6 +27,7 @@
     "stripe": "^18.3.0"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
     "electron": "31.2.1",
     "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.0",

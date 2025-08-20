@@ -1,4 +1,4 @@
-// packages/electron-app/vite.config.js
+// packages/electron-app/electron.vite.config.js
 import { resolve } from 'path'
 import { defineConfig } from 'electron-vite'
 
@@ -10,7 +10,9 @@ export default defineConfig({
           index: resolve(__dirname, 'src/index.js')
         }
       },
-      outDir: resolve(__dirname, 'dist/main')
+      outDir: resolve(__dirname, 'dist/main'),
+      // 外部モジュールのみを指定し、ローカルモジュールはバンドルする
+      external: ['electron', 'electron-log', 'electron-store', 'puppeteer-core', 'stripe', 'dotenv', 'fs', 'path']
     }
   },
   preload: {
