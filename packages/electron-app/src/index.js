@@ -24,24 +24,20 @@ const ReportService = require('./main/reportService');
 // Squirrelのセットアップイベント処理は削除済み
 
 
+const dotenv = require('dotenv');
+
+
 // --- .env ファイルの読み込み ---
-// 開発環境では packages/electron-app/ から、本番環境では適切なパスから.envファイルを読み込む
-const appRootPath = app.isPackaged ? app.getAppPath() : path.join(__dirname, '..');
-const dotEnvPath = path.join(appRootPath, '.env');
-
-log.info(`.envファイルの読み込みを試行します。パス: ${dotEnvPath}`);
-if (fs.existsSync(dotEnvPath)) {
-  log.info(`.env ファイルが指定されたパスに存在することを確認しました。`);
-  require('dotenv').config({ path: dotEnvPath });
-} else {
-  log.error(` 致命的エラー:.env ファイルが指定されたパスに見つかりません: ${dotEnvPath}`);
+if (!app.isPackaged) {
+  // 開発時：
+  // 実行されているファイル(__dirname = .../dist/main)から2階層上がって('.env'を探す)
+  dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 }
+// 本番時：
+// .envファイルは配布物（インストーラー）に含めるべきではありません。
+// APIキーなどはBFFサーバーで管理するのが最も安全な方法です。
+// そのため、本番環境では .env を読み込むコード自体を動かさないのがベストです。
 
-if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
-  log.info(`Stripe Secret Keyが正常にprocess.envにロードされました。`);
-} else {
-  log.error(` 致命的エラー: Stripe Secret Keyのprocess.envへのロードに失敗しました。`);
-}
 
 // --- electron-log の設定 ---
 log.transports.file.resolvePath = () => path.join(app.getPath('userData'), 'logs/main.log');
@@ -151,34 +147,28 @@ function getChromiumPath() {
 let mainWindow;
 
 const createWindow = () => {
-  // --- パス問題を解決するための修正 ---
-
-  // 1. プリロードスクリプトのパスを、開発用と本番用で切り替える
-  const preloadPath = app.isPackaged
-    ? path.join(__dirname, '../preload/index.js') // 本番用(配布用)のパス
-    : path.join(__dirname, 'preload.js');        // 開発用のパス
-
-  // 2. 表示するHTMLファイルのパスも、同様に切り替える
-  const indexPath = app.isPackaged
-    ? path.join(__dirname, '../renderer/index.html') // 本番用(配布用)のパス
-    : path.join(__dirname, 'index.html');           // 開発用のパス
-
-  // --- ここまでが修正箇所 ---
-
-
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 900,
+    height: 670,
     webPreferences: {
-      preload: preloadPath, // 上で決定したパスを使う
-    },
-  });
+      // プリロードスクリプトのパスを動的に解決
+      preload: path.join(__dirname, '../preload/index.js'),
+      // セキュリティのため、contextIsolationはtrueが強く推奨される
+      contextIsolation: true,
+      // レンダラープロセスでのNode.js統合は無効にする
+      nodeIntegration: false
+    }
+  })
 
-  mainWindow.loadFile(indexPath); // 上で決定したパスを使う
-
-  // 開発時のみデベロッパーツールを開くように修正
-  if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools();
+  // 開発モードと本番モードで読み込む内容を切り替える
+  if (process.env.ELECTRON_RENDERER_URL) {
+    // 開発時: electron-viteが提供する開発サーバーのURLを読み込む
+    // 'ELECTRON_RENDERER_URL'はelectron-viteによって自動的に設定される
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
+    mainWindow.webContents.openDevTools()
+  } else {
+    // 本番時: ビルドされたindex.htmlを読み込む
+    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
 
   // 面接セッションのログを初期化 (ここは元のまま)

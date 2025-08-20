@@ -7,7 +7,7 @@
     ],
     "scripts": {
         "dev": "concurrently \"pnpm --filter bff-server dev\" \"pnpm --filter kage start\"",
-        "make": "pnpm --filter kage build"
+        "build": "pnpm --filter kage build"
     },
     "devDependencies": {
         "@puppeteer/browsers": "^2.10.6",

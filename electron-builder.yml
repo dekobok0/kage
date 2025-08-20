@@ -1,0 +1,42 @@
+# electron-builder.yml (Monorepoのルートに配置)
+
+# アプリケーションの基本情報
+appId: "com.kage.app"
+productName: "Kage"
+copyright: "Copyright © 2025 kantasuzuki"
+
+# Monorepo構造をElectron Builderに正しく認識させるための最重要設定
+directories:
+  # アプリ本体のpackage.jsonがあるディレクトリを、このymlファイルからの相対パスで指定
+  app: "packages/electron-app"
+  # 完成品の出力先を、Monorepoルートからの相対パスで指定
+  output: "release"
+
+# パッケージに含めるファイルを定義する
+files:
+  # electron-viteによるビルド成果物（バンドルされたコード）
+  - "packages/electron-app/dist/**/*"
+  # 依存関係を解決するために、アプリ自身のpackage.json
+  - "packages/electron-app/package.json"
+  # 【超重要】ここに "node_modules" に関する記述は絶対にしないこと！
+  # これを最小限にすることで、Electron Builderが自動で必要なnode_modulesを集めてくれる。
+
+# Puppeteerが使うブラウザをパッケージに含めるための設定
+extraResources:
+  - from: ".puppeteer-cache"
+    to: "puppeteer"
+    filter:
+      - "**/*"
+
+# --- プラットフォーム固有の設定 ---
+win:
+  target: "nsis" # 安定したインストーラー
+  icon: "packages/electron-app/assets/icon.ico" # アイコンのパス
+
+mac:
+  target: "dmg"
+  icon: "packages/electron-app/assets/icon.icns"
+
+linux:
+  target: "AppImage"
+  icon: "packages/electron-app/assets/icon.png"

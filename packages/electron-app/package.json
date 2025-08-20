@@ -5,13 +5,10 @@
   "description": "My Electron application description",
   "main": "dist/main/index.js",
   "scripts": {
-    "start": "electron src/index.js",
+    "start": "electron-vite dev",
     "build:vite": "electron-vite build",
     "prebuild": "pnpm run build:vite",
-    "build": "electron-builder",
-    "build:win": "pnpm run build --win",
-    "build:mac": "pnpm run build --mac",
-    "build:linux": "pnpm run build --linux"
+    "build": "electron-builder --config ../../electron-builder.yml"
   },
   "keywords": [],
   "author": {
