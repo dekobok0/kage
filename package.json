@@ -6,9 +6,10 @@
         "packages/*"
     ],
     "scripts": {
-        "dev": "concurrently \"pnpm --filter bff-server dev\" \"pnpm --filter kage start\"",
-        "build": "pnpm --filter kage build"
+    "dev": "concurrently \"pnpm --filter bff-server dev\" \"pnpm --filter kage start\"",
+    "build": "pnpm --filter kage build:vite && electron-builder"
     },
+    
     "devDependencies": {
         "@puppeteer/browsers": "^2.10.6",
         "concurrently": "^8.2.2"

@@ -4,12 +4,10 @@
   "version": "1.1.0",
   "description": "My Electron application description",
   "main": "dist/main/index.js",
-  "scripts": {
-    "start": "electron-vite dev",
-    "build:vite": "electron-vite build",
-    "prebuild": "pnpm run build:vite",
-    "build": "electron-builder --config ../../electron-builder.yml"
-  },
+ "scripts": {
+  "start": "electron-vite dev",
+  "build:vite": "electron-vite build"
+},
   "keywords": [],
   "author": {
     "name": "kantasuzuki",

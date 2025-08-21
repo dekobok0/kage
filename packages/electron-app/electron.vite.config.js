@@ -1,21 +1,24 @@
 // packages/electron-app/electron.vite.config.js
 import { resolve } from 'path'
-import { defineConfig } from 'electron-vite'
+// ↓↓↓ externalizeDepsPlugin をインポートする
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 
 export default defineConfig({
   main: {
+     // ↓↓↓ plugins を追加し、externalizeDepsPlugin を呼び出す
+    plugins: [externalizeDepsPlugin()],
     build: {
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/index.js')
         }
       },
-      outDir: resolve(__dirname, 'dist/main'),
-      // 外部モジュールのみを指定し、ローカルモジュールはバンドルする
-      external: ['electron', 'electron-log', 'electron-store', 'puppeteer-core', 'stripe', 'dotenv', 'fs', 'path']
+      outDir: resolve(__dirname, 'dist/main')
     }
   },
   preload: {
+    // ↓↓↓ plugins を追加し、externalizeDepsPlugin を呼び出す
+    plugins: [externalizeDepsPlugin()],
     build: {
       rollupOptions: {
         input: {
