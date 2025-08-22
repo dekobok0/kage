@@ -6,17 +6,11 @@
         "packages/*"
     ],
     "scripts": {
-    "dev": "concurrently \"pnpm --filter bff-server dev\" \"pnpm --filter kage start\"",
-    "build": "pnpm --filter kage build:vite && electron-builder"
+        "dev": "concurrently \"npm run dev --workspace=bff-server\" \"npm run start --workspace=kage\"",
+        "build": "npm run build:vite --workspace=kage && electron-builder"
     },
-    
     "devDependencies": {
         "@puppeteer/browsers": "^2.10.6",
         "concurrently": "^8.2.2"
-    },
-   "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron"
-    ]
-  }
+    }
 }

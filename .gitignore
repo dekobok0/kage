@@ -91,6 +91,8 @@ typings/
 # Electron-Forge
 out/
 
+release/
+
 # Secret files
 kage-gcp-key.json
 
