@@ -29,6 +29,8 @@ export default defineConfig({
     }
   },
   renderer: {
+    // ↓↓↓ この一行を追加 ↓↓↓
+    base: './',
     root: 'src',
     build: {
       rollupOptions: {
