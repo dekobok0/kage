@@ -26,7 +26,7 @@ contextBridge.exposeInMainWorld('api', {
   generateReport: () => ipcRenderer.invoke('generate-report'),
   
   // 決済関連
-  createCheckoutSession: () => ipcRenderer.invoke('create-checkout-session'),
+  createCheckoutSession: (priceId) => ipcRenderer.invoke('create-checkout-session', priceId),
   openExternalUrl: (url) => ipcRenderer.send('open-external-url', url),
   
   // ▼▼▼【お掃除用API】この一行を追加 ▼▼▼

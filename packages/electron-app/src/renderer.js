@@ -355,7 +355,7 @@ checkoutButton.addEventListener('click', async () => {
   paymentStatusElement.textContent = '決済ページを準備しています...';
   try {
     // 1. メインプロセスにCheckoutセッションの作成を依頼
-    const result = await window.api.createCheckoutSession();
+    const result = await window.api.createCheckoutSession('price_1RmYiIRhh0YbRyvV9bJG7N3v');
 
     if (result.success) {
       // 2. 成功したら、受け取ったURLを外部ブラウザで開く

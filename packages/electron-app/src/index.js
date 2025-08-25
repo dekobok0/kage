@@ -20,6 +20,20 @@ const puppeteer = require('puppeteer-core');
 // const IPCHandlers = require('./main/ipcHandlers');
 // const ReportService = require('./main/reportService');
 
+const dotenv = require('dotenv');
+
+
+// --- .env ファイルの読み込み ---
+if (!app.isPackaged) {
+  // 開発時：
+  // 実行されているファイル(__dirname = .../dist/main)から2階層上がって('.env'を探す)
+  dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
+}
+// 本番時：
+// .envファイルは配布物（インストーラー）に含めるべきではありません。
+// APIキーなどはBFFサーバーで管理するのが最も安全な方法です。
+// そのため、本番環境では .env を読み込むコード自体を動かさないのがベストです。
+
 // IPCHandlersクラスを直接定義
 class IPCHandlers {
   constructor(baseURL = 'http://localhost:8080') {
@@ -127,22 +141,10 @@ class BFFService {
   }
 }
 
-// ReportServiceクラスを直接定義
+// ReportServiceクラスを直接定義（Stripe依存関係を削除）
 class ReportService {
   constructor() {
-    if (process.env.STRIPE_SECRET_KEY) {
-      try {
-        this.stripe = new (require('stripe'))(process.env.STRIPE_SECRET_KEY);
-        log.info('[Report] Stripe initialized successfully');
-      } catch (error) {
-        log.error('[Report] Failed to initialize Stripe:', error);
-        this.stripe = null;
-      }
-    } else {
-      log.warn('[Report] STRIPE_SECRET_KEY not found, Stripe disabled');
-      this.stripe = null;
-    }
-    log.info('[Report] ReportService initialized');
+    log.info('[Report] ReportService initialized (Stripe removed, using BFF)');
   }
 
   /**
@@ -461,49 +463,14 @@ class ReportService {
   }
 
   async createCheckoutSession() {
-    // Stripe Checkoutセッション作成の実装
-    if (!this.stripe) {
-      throw new Error('Stripe is not configured');
-    }
-    
-    try {
-      const session = await this.stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          { price: 'price_1RmYiIRhh0YbRyvV9bJG7N3v', quantity: 1 },
-        ],
-        mode: 'subscription',
-        success_url: 'https://effulgent-marzipan-17f896.netlify.app/success.html',
-        cancel_url: 'https://effulgent-marzipan-17f896.netlify.app/cancel.html',
-      });
-      
-      log.info('[Report] Stripe Checkout session created successfully');
-      return { success: true, url: session.url };
-    } catch (error) {
-      log.error('[Report] Stripe checkout session creation failed:', error);
-      throw error;
-    }
+    // BFFサーバー経由で決済セッションを作成
+    // この実装はmain processで行われる
+    throw new Error('このメソッドはBFFサーバー経由で呼び出されるべきです');
   }
 }
 
 
 // Squirrelのセットアップイベント処理は削除済み
-
-
-const dotenv = require('dotenv');
-
-
-// --- .env ファイルの読み込み ---
-if (!app.isPackaged) {
-  // 開発時：
-  // 実行されているファイル(__dirname = .../dist/main)から2階層上がって('.env'を探す)
-  dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
-}
-// 本番時：
-// .envファイルは配布物（インストーラー）に含めるべきではありません。
-// APIキーなどはBFFサーバーで管理するのが最も安全な方法です。
-// そのため、本番環境では .env を読み込むコード自体を動かさないのがベストです。
-
 
 // --- electron-log の設定 ---
 log.transports.file.resolvePath = () => path.join(app.getPath('userData'), 'logs/main.log');
@@ -899,14 +866,17 @@ ipcMain.handle('generate-report', async (event) => {
   }
 });
 
-// Stripe Checkoutセッション作成の処理
-ipcMain.handle('create-checkout-session', async () => {
+// BFFサーバー経由でStripe Checkoutセッション作成の処理
+ipcMain.handle('create-checkout-session', async (event, priceId) => {
   try {
-    const reportService = new ReportService();
-    const result = await reportService.createCheckoutSession();
-    return result;
+    const axios = require('axios');
+    const response = await axios.post(
+      'http://localhost:8080/api/create-checkout-session', 
+      { priceId: priceId || 'price_1RmYiIRhh0YbRyvV9bJG7N3v' }
+    );
+    return { success: true, url: response.data.url };
   } catch (error) {
-    log.error('Failed to create Stripe Checkout session:', error);
+    log.error('BFFへのStripeセッション作成依頼に失敗:', error);
     return { success: false, message: error.message };
   }
 });
