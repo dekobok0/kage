@@ -19,12 +19,19 @@ PORT=8080
 NODE_ENV=development
 ```
 
-### 2. Stripe秘密鍵の取得
+### 2. 本番環境での動作
+配布版のElectronアプリは、自動的にCloud Run上のBFFサーバーに接続します：
+- **開発時**: `http://localhost:8080`
+- **配布版**: `https://kage-bff-server-266846393607.asia-northeast1.run.app`
+
+環境変数の設定は不要です。
+
+### 3. Stripe秘密鍵の取得
 1. [Stripe Dashboard](https://dashboard.stripe.com/)にログイン
 2. Developers > API keys から秘密鍵を取得
 3. `.env`ファイルの`STRIPE_SECRET_KEY`に設定
 
-### 3. サーバーの起動
+### 4. サーバーの起動
 ```bash
 npm run dev
 ```

@@ -22,6 +22,27 @@ const puppeteer = require('puppeteer-core');
 
 const dotenv = require('dotenv');
 
+// --- アプリケーション設定 ---
+const config = {
+  bff: {
+    development: {
+      baseUrl: process.env.BFF_BASE_URL || 'http://localhost:8080'
+    },
+    production: {
+      baseUrl: 'https://kage-bff-server-266846393607.asia-northeast1.run.app'
+    }
+  },
+   stripe: {
+    // ↓ developmentとproductionの中に、それぞれのIDを持たせる
+    development: {
+      defaultPriceId: 'price_1RmYiIRhh0YbRyvV9bJG7N3v' 
+    },
+    production: {
+      defaultPriceId: 'price_1RzsTBDS4TYCV5MDrumO9Wme'
+    }
+  }
+};
+
 
 // --- .env ファイルの読み込み ---
 if (!app.isPackaged) {
@@ -870,9 +891,19 @@ ipcMain.handle('generate-report', async (event) => {
 ipcMain.handle('create-checkout-session', async (event, priceId) => {
   try {
     const axios = require('axios');
+    // 環境に応じてBFFサーバーのURLを動的に決定
+    const bffBaseURL = app.isPackaged
+      ? config.bff.production.baseUrl // 本番用のURL
+      : config.bff.development.baseUrl; // 開発用のURL
+    
+    // 環境に応じてStripe料金IDを動的に選択
+    const priceIdToUse = priceId || (app.isPackaged
+      ? config.stripe.production.defaultPriceId // 配布版なら本番用ID
+      : config.stripe.development.defaultPriceId); // 開発版ならサンドボックス用ID
+    
     const response = await axios.post(
-      'http://localhost:8080/api/create-checkout-session', 
-      { priceId: priceId || 'price_1RmYiIRhh0YbRyvV9bJG7N3v' }
+      `${bffBaseURL}/api/create-checkout-session`, 
+      { priceId: priceIdToUse }
     );
     return { success: true, url: response.data.url };
   } catch (error) {
@@ -896,10 +927,14 @@ app.whenReady().then(() => {
   createWindow();
 
   // BFF統合のためのIPCハンドラーを初期化
-  const bffBaseURL = process.env.BFF_BASE_URL || 'http://localhost:8080';
+  const bffBaseURL = app.isPackaged
+    ? config.bff.production.baseUrl // 本番用のURL
+    : config.bff.development.baseUrl; // 開発用のURL
+  
   const ipcHandlers = new IPCHandlers(bffBaseURL);
   log.info('[BFF] BFF統合のためのIPCハンドラーが初期化されました。');
   log.info(`[BFF] BFFサーバーURL: ${bffBaseURL}`);
+  log.info(`[BFF] 環境: ${app.isPackaged ? '本番（配布版）' : '開発'}`);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

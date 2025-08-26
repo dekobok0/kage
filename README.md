@@ -42,6 +42,8 @@ PORT=8080
 NODE_ENV=development
 ```
 
+**注意**: 配布版のElectronアプリは、自動的にCloud Run上のBFFサーバーに接続します。環境変数の設定は不要です。
+
 ### 3. サーバーの起動
 ```bash
 # BFFサーバーを起動
